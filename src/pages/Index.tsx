@@ -12,7 +12,7 @@ const Index = () => {
           <Link to="/auth">
             <Button size="lg" className="gap-2">
               <Upload className="w-5 h-5" />
-              Fazer Login para Upload
+              Iniciar Clipagem
             </Button>
           </Link>
         </div>
