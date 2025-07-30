@@ -305,13 +305,19 @@ const VideoUpload = () => {
       }
 
       console.log('=== SAVING URL TO DATABASE ===');
+      console.log('User object:', user); // Debug full user object
       console.log('User email:', user.email); // Debug user email
+      
+      // Get user email - try user.email first, fallback to user.user_metadata.email
+      const userEmail = user.email || user.user_metadata?.email || null;
+      console.log('Final user email:', userEmail);
+      
       // Save URL submission to database
       const { data: submissionData, error: submissionError } = await supabase
         .from('video_submissions')
         .insert({
           user_id: user.id,
-          user_email: user.email,
+          user_email: userEmail,
           submission_type: 'url_link',
           video_url: videoUrl,
           original_filename: videoUrl.split('/').pop() || 'video-link'
@@ -498,13 +504,19 @@ const VideoUpload = () => {
       console.log('=== UPLOAD SUCCESSFUL ===');
 
       console.log('=== SAVING FILE TO DATABASE ===');
+      console.log('User object:', user); // Debug full user object
       console.log('User email:', user.email); // Debug user email
+      
+      // Get user email - try user.email first, fallback to user.user_metadata.email
+      const userEmail = user.email || user.user_metadata?.email || null;
+      console.log('Final user email:', userEmail);
+      
       // Save file submission to database
       const { data: submissionData, error: submissionError } = await supabase
         .from('video_submissions')
         .insert({
           user_id: user.id,
-          user_email: user.email,
+          user_email: userEmail,
           submission_type: 'file_upload',
           file_path: data.path,
           original_filename: selectedFile.name,
