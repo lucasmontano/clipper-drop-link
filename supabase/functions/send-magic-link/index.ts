@@ -59,8 +59,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sessão criada com sucesso no banco de dados");
 
     // Send magic link email
-    const baseUrl = req.headers.get('origin') || 'http://localhost:5173';
-    const magicLink = `${baseUrl}/upload?token=${uploadToken}`;
+    // Generate magic link pointing to verify-upload function
+    const baseUrl = req.headers.get('origin') || 'https://04be28f4-ccd4-4ce3-9c85-335f2daa750c.lovableproject.com';
+    const magicLink = `https://qajnfujinlwashzzatbc.supabase.co/functions/v1/verify-upload?token=${uploadToken}`;
     
     console.log("Tentando enviar email via Resend...");
     console.log("Magic link:", magicLink);
