@@ -321,6 +321,26 @@ const VideoUpload = () => {
     return 'N/A';
   };
 
+  const getClipGuidelines = (clipType: string): string => {
+    if (clipType === 'perssua') {
+      return 'Faça um Clip sobre o Perssua seguindo um roteiro simples e criativo. Uma ideia para apresentar o software é começar falando de um problema, e comentar que um amigo recomendou o Perssua, nesse momento tu pode gravar o Perssua sendo utilizado e narrar como utilizou.';
+    }
+    if (clipType === 'lucas_montano') {
+      return 'Faça um Clip de qualquer video publico do canal Lucas Montano. É importante que no clip o Lucas Montano esteja ou "montano" algo ou ensinando algo. As pessoas gostam muito quando ele desenha ou escreve algum código.';
+    }
+    return '';
+  };
+
+  const getPaymentInfo = (clipType: string): string => {
+    if (clipType === 'perssua') {
+      return '$1 por mil view + $3 de bonus se marcar o Lucas para que seja repostado (Reels, X).';
+    }
+    if (clipType === 'lucas_montano') {
+      return '$1 por mil view ou $5 pelo corte aprovado. Para submeter apenas um corte para aprovação suba o arquivo no Google Drive e compartilhe o link.';
+    }
+    return '';
+  };
+
   const uploadFromUrl = async () => {
     if (!videoUrl || !user) {
       toast({
@@ -770,6 +790,20 @@ const VideoUpload = () => {
               </button>
             </div>
           </div>
+
+          {/* Guidelines and Payment Info - Show after clip type is selected */}
+          {clipType && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">Orientações para {getClipTypeName(clipType)}</h3>
+                <p className="text-sm text-blue-800 mb-3">{getClipGuidelines(clipType)}</p>
+                <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                  <h4 className="font-medium text-green-900 mb-1">Pagamento:</h4>
+                  <p className="text-sm text-green-800">{getPaymentInfo(clipType)}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Social Media URL Input - Only show after clip type is selected */}
           {clipType && (
