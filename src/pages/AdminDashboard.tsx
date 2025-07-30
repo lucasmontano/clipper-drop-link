@@ -246,6 +246,32 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleMarkAsPaid = async (paymentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('payments')
+        .update({ status: 'paid' })
+        .eq('id', paymentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Status atualizado",
+        description: "Pagamento marcado como pago.",
+      });
+
+      // Reload data
+      loadSubmissions();
+    } catch (error: any) {
+      console.error('Error updating payment status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do pagamento.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
@@ -496,6 +522,80 @@ const AdminDashboard = () => {
                       )}
                     </TableBody>
                   </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment History */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de Pagamentos</CardTitle>
+              <CardDescription>
+                Todos os pagamentos criados com status atual
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Views</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground">
+                          Nenhum pagamento encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-medium">
+                            {formatDate(payment.payment_date)}
+                          </TableCell>
+                          <TableCell>
+                            {payment.user_email}
+                          </TableCell>
+                          <TableCell>
+                            {payment.total_views.toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-semibold text-green-600">
+                              {formatPayment(payment.payment_amount)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={payment.status === 'paid' ? 'default' : 'outline'}
+                              className={payment.status === 'paid' ? 'text-green-600' : 'text-orange-600'}
+                            >
+                              {payment.status === 'paid' ? 'Pago' : 'Pendente'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {payment.status === 'pending' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleMarkAsPaid(payment.id)}
+                                className="gap-1"
+                              >
+                                ✓ Marcar Pago
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
