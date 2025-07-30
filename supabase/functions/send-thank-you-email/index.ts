@@ -32,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
       : `link: ${videoUrl}`;
 
     const emailResponse = await resend.emails.send({
-      from: "Clippers <onboarding@resend.dev>",
+      from: "Clippers <evoluindo@lucasmontano.com>", // Changed to use verified email domain
       to: [userEmail],
       subject: "🎬 Obrigado por enviar seu clipe!",
       html: `
