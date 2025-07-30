@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2, LogOut, Link, Trash2, Download, ExternalLink } from "lucide-react";
+import { Loader2, LogOut, Link, Trash2, Download, ExternalLink, Youtube, Instagram, Twitter, Facebook, Linkedin, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -246,6 +246,46 @@ const VideoUpload = () => {
     } catch {
       return { isValid: false, message: "URL inválida" };
     }
+  };
+
+  const getSocialMediaIcon = (url: string) => {
+    if (!url) return Globe;
+    
+    const urlLower = url.toLowerCase();
+    
+    if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be')) {
+      return Youtube;
+    } else if (urlLower.includes('instagram.com')) {
+      return Instagram;
+    } else if (urlLower.includes('twitter.com') || urlLower.includes('x.com')) {
+      return Twitter;
+    } else if (urlLower.includes('facebook.com')) {
+      return Facebook;
+    } else if (urlLower.includes('linkedin.com')) {
+      return Linkedin;
+    }
+    
+    return Globe;
+  };
+
+  const getSocialMediaName = (url: string) => {
+    if (!url) return 'Website';
+    
+    const urlLower = url.toLowerCase();
+    
+    if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be')) {
+      return 'YouTube';
+    } else if (urlLower.includes('instagram.com')) {
+      return 'Instagram';
+    } else if (urlLower.includes('twitter.com') || urlLower.includes('x.com')) {
+      return 'Twitter/X';
+    } else if (urlLower.includes('facebook.com')) {
+      return 'Facebook';
+    } else if (urlLower.includes('linkedin.com')) {
+      return 'LinkedIn';
+    }
+    
+    return 'Website';
   };
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -649,91 +689,57 @@ const VideoUpload = () => {
             </div>
           )}
 
-          {/* Upload Options Tabs */}
-          <Tabs defaultValue="file" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="file" className="gap-2">
-                <Upload className="w-4 h-4" />
-                Upload de Arquivo
-              </TabsTrigger>
-              <TabsTrigger value="url" className="gap-2">
-                <Link className="w-4 h-4" />
-                Link do Vídeo
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="file" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="video">Selecionar vídeo</Label>
-                <Input
-                  id="video"
-                  type="file"
-                  accept="video/*"
-                  onChange={handleFileSelect}
-                  ref={fileInputRef}
-                />
-                {selectedFile && (
-                  <p className="text-sm text-muted-foreground">
-                    Arquivo selecionado: {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
-                  </p>
-                )}
-              </div>
-
-              <Button
-                onClick={uploadVideo}
-                disabled={isUploading || !selectedFile}
-                className="w-full"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Enviando vídeo...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Fazer Upload
-                  </>
-                )}
-              </Button>
-            </TabsContent>
-
-            <TabsContent value="url" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="videoUrl">URL do vídeo</Label>
+          {/* Social Media URL Input */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="videoUrl">URL da mídia social</Label>
+              <div className="relative">
                 <Input
                   id="videoUrl"
                   type="url"
                   value={videoUrl}
                   onChange={handleUrlChange}
-                  placeholder="https://exemplo.com/video.mp4"
+                  placeholder="https://youtube.com/watch?v=... ou outro link de mídia social"
+                  className="pl-10"
                 />
                 {videoUrl && (
-                  <p className="text-sm text-muted-foreground">
-                    URL: {videoUrl}
-                  </p>
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    {(() => {
+                      const IconComponent = getSocialMediaIcon(videoUrl);
+                      return <IconComponent className="w-4 h-4 text-muted-foreground" />;
+                    })()}
+                  </div>
                 )}
               </div>
+              {videoUrl && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {(() => {
+                    const IconComponent = getSocialMediaIcon(videoUrl);
+                    return <IconComponent className="w-4 h-4" />;
+                  })()}
+                  <span>Detectado: {getSocialMediaName(videoUrl)}</span>
+                </div>
+              )}
+            </div>
 
-              <Button
-                onClick={uploadFromUrl}
-                disabled={isUploading || !videoUrl}
-                className="w-full"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvando link...
-                  </>
-                ) : (
-                  <>
-                    <Link className="mr-2 h-4 w-4" />
-                    Salvar Link
-                  </>
-                )}
-              </Button>
-            </TabsContent>
-          </Tabs>
+            <Button
+              onClick={uploadFromUrl}
+              disabled={isUploading || !videoUrl}
+              className="w-full"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando link...
+                </>
+              ) : (
+                <>
+                  <Link className="mr-2 h-4 w-4" />
+                  Salvar Link
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -753,9 +759,9 @@ const VideoUpload = () => {
             </div>
           ) : userSubmissions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <Link className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Você ainda não fez nenhuma submissão.</p>
-              <p className="text-sm">Use o formulário acima para enviar seus vídeos.</p>
+              <p className="text-sm">Use o formulário acima para adicionar seus links de mídia social.</p>
             </div>
           ) : (
             <div className="rounded-md border">
@@ -786,15 +792,21 @@ const VideoUpload = () => {
                             {submission.original_filename || 'Arquivo sem nome'}
                           </span>
                         ) : (
-                          <a
-                            href={submission.video_url || '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline flex items-center gap-1"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            Ver Link
-                          </a>
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const IconComponent = getSocialMediaIcon(submission.video_url || '');
+                              return <IconComponent className="w-4 h-4 text-muted-foreground" />;
+                            })()}
+                            <a
+                              href={submission.video_url || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary hover:underline flex items-center gap-1"
+                            >
+                              <span>{getSocialMediaName(submission.video_url || '')}</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
                         )}
                       </TableCell>
                       <TableCell>
