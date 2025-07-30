@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { userEmail, totalViews, paymentAmount, submissionIds }: CreatePaymentRequest = await req.json();
 
-    // Get user_id from email
+    // Get user_id from email - this should be the recipient's email, not the admin's
     const { data: profiles, error: profileError } = await supabase
       .from('profiles')
       .select('id')
@@ -38,7 +38,8 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (profileError || !profiles) {
-      throw new Error(`User not found: ${userEmail}`);
+      console.error('Profile lookup error:', profileError);
+      throw new Error(`User profile not found for: ${userEmail}`);
     }
 
     // Create payment record
