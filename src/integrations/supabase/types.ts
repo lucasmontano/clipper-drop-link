@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      upload_configs: {
+        Row: {
+          allowed_formats: string[]
+          created_at: string
+          id: string
+          max_file_size_mb: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_formats?: string[]
+          created_at?: string
+          id?: string
+          max_file_size_mb?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_formats?: string[]
+          created_at?: string
+          id?: string
+          max_file_size_mb?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      upload_sessions: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          is_verified: boolean
+          upload_token: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          file_name: string
+          file_size: number
+          file_type: string
+          id?: string
+          is_verified?: boolean
+          upload_token: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          is_verified?: boolean
+          upload_token?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
