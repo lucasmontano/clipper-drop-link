@@ -66,7 +66,7 @@ const Index = () => {
       <div className="relative z-10 text-center space-y-6">
         <div className="space-y-4">
           
-          <Button size="lg" onClick={handleButtonClick} className="gap-2 bg-primary/20 backdrop-blur-sm border border-primary/30 text-white drop-shadow-lg hover:bg-primary/30 transition-all duration-300 relative overflow-hidden" style={{
+          <Button size="lg" onClick={handleButtonClick} className="gap-2 bg-primary/20 backdrop-blur-sm border border-primary/30 text-white drop-shadow-lg hover:bg-primary/30 transition-all duration-300 relative overflow-hidden h-14 px-12 text-lg" style={{
           '--click-x': `${clickEffect.x}%`,
           '--click-y': `${clickEffect.y}%`,
           maskImage: clickEffect.active ? `
