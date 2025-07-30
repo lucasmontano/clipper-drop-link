@@ -29,17 +29,22 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const { userEmail, totalViews, paymentAmount, submissionIds }: CreatePaymentRequest = await req.json();
+    
+    console.log('Create payment request:', { userEmail, totalViews, paymentAmount, submissionIds });
 
     // Get user_id from email - this should be the recipient's email, not the admin's
+    console.log('Looking up profile for email:', userEmail);
     const { data: profiles, error: profileError } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', userEmail)
       .single();
 
+    console.log('Profile lookup result:', { profiles, profileError });
+
     if (profileError || !profiles) {
-      console.error('Profile lookup error:', profileError);
-      throw new Error(`User profile not found for: ${userEmail}`);
+      console.error('Profile lookup failed:', profileError);
+      throw new Error(`User profile not found for: ${userEmail}. Error: ${profileError?.message || 'No profile data'}`);
     }
 
     // Create payment record
