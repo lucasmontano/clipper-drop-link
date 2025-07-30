@@ -512,10 +512,10 @@ const VideoUpload = () => {
 
       if (submissionError) {
         console.error('Database insert error:', submissionError);
-        console.warn('File uploaded but not recorded in submissions table');
-      } else {
-        console.log('Submission recorded:', submissionData);
+        throw new Error('Arquivo enviado, mas falha ao registrar na base de dados. Tente novamente.');
       }
+      
+      console.log('Submission recorded:', submissionData);
 
       // Send thank you email
       await sendThankYouEmail('file_upload', selectedFile.name);
