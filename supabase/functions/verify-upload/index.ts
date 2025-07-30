@@ -52,6 +52,22 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Erro ao verificar sessão: ${updateError.message}`);
     }
 
+    // Check if this is a web request (from clicking the magic link)
+    const userAgent = req.headers.get('user-agent') || '';
+    const isWebRequest = userAgent.includes('Mozilla') || userAgent.includes('Chrome') || userAgent.includes('Safari');
+    
+    if (isWebRequest) {
+      // Redirect to success page for web requests
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          'Location': `${req.headers.get('origin') || 'http://localhost:5173'}/upload-success?token=${token}`
+        }
+      });
+    }
+
+    // Return JSON for API requests
     return new Response(JSON.stringify({ 
       success: true, 
       uploadToken: token,
