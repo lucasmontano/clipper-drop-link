@@ -492,9 +492,6 @@ const VideoUpload = () => {
       console.log('=== URL SUBMISSION SUCCESSFUL ===');
       console.log('Submission data:', submissionData);
 
-      // Send thank you email
-      await sendThankYouEmail('url_link', undefined, videoUrl);
-
       toast({
         title: "Submissão concluída!",
         description: `Seu link de vídeo foi salvo com sucesso. Você tem ${rateLimitResult.remaining_attempts} submissões restantes hoje.`,
