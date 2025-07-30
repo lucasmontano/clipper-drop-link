@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
         status: 302,
         headers: {
           ...corsHeaders,
-          'Location': `${req.headers.get('origin') || 'http://localhost:5173'}/upload-success?token=${token}`
+          'Location': `https://04be28f4-ccd4-4ce3-9c85-335f2daa750c.lovableproject.com/upload-success?token=${token}`
         }
       });
     }
