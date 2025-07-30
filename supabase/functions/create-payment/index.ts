@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
             <ul>
               <li><strong>Total de Visualizações:</strong> ${totalViews.toLocaleString()}</li>
               <li><strong>Valor do Pagamento:</strong> $${paymentAmount.toFixed(2)}</li>
-              <li><strong>Data do Pagamento:</strong> ${new Date().toLocaleDateString('pt-BR')}</li>
+              <li><strong>Data do fechamento:</strong> ${new Date().toLocaleDateString('pt-BR')}</li>
             </ul>
           </div>
           
