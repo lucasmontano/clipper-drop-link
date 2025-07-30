@@ -103,3 +103,18 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes cut-effect {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5) rotate(45deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(3) rotate(90deg);
+    opacity: 0;
+  }
+}
