@@ -3,12 +3,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2, LogOut, Link } from "lucide-react";
+import { Upload, Loader2, LogOut, Link, Trash2, Download, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface UploadConfig {
   max_file_size_mb: number;
@@ -23,6 +32,18 @@ interface RateLimitResult {
   message?: string;
 }
 
+interface VideoSubmission {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  submission_type: string;
+  file_path: string | null;
+  video_url: string | null;
+  original_filename: string | null;
+  file_size_bytes: number | null;
+  created_at: string;
+}
+
 const VideoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
@@ -30,9 +51,37 @@ const VideoUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [userSubmissions, setUserSubmissions] = useState<VideoSubmission[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const loadUserSubmissions = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingSubmissions(true);
+      const { data, error } = await supabase
+        .from('video_submissions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setUserSubmissions(data || []);
+    } catch (error: any) {
+      console.error('Error loading user submissions:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar suas submissões.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
 
   useEffect(() => {
     loadUploadConfig();
@@ -45,6 +94,11 @@ const VideoUpload = () => {
         
         if (!session?.user) {
           navigate('/auth');
+        } else {
+          // Load user submissions when user is authenticated
+          setTimeout(() => {
+            loadUserSubmissions();
+          }, 0);
         }
       }
     );
@@ -56,6 +110,8 @@ const VideoUpload = () => {
       
       if (!session?.user) {
         navigate('/auth');
+      } else {
+        loadUserSubmissions();
       }
     });
 
@@ -280,6 +336,9 @@ const VideoUpload = () => {
 
       // Reset form
       setVideoUrl('');
+      
+      // Reload user submissions
+      await loadUserSubmissions();
     } catch (error: any) {
       console.error('=== URL SUBMISSION ERROR ===');
       console.error('Error details:', error);
@@ -292,6 +351,86 @@ const VideoUpload = () => {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const deleteSubmission = async (submissionId: string, filePath?: string) => {
+    try {
+      // Delete from storage if it's a file upload
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('video-uploads')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.error('Storage deletion error:', storageError);
+          // Continue with database deletion even if storage fails
+        }
+      }
+
+      // Delete from database
+      const { error } = await supabase
+        .from('video_submissions')
+        .delete()
+        .eq('id', submissionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Submissão excluída",
+        description: "Sua submissão foi excluída com sucesso.",
+      });
+
+      // Reload submissions
+      await loadUserSubmissions();
+    } catch (error: any) {
+      console.error('Error deleting submission:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a submissão.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadFile = async (filePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('video-uploads')
+        .download(filePath);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download iniciado",
+        description: `Baixando ${fileName}...`,
+      });
+    } catch (error: any) {
+      console.error('Error downloading file:', error);
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar o arquivo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return 'N/A';
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('pt-BR');
   };
 
   const uploadVideo = async () => {
@@ -391,6 +530,9 @@ const VideoUpload = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+      
+      // Reload user submissions
+      await loadUserSubmissions();
     } catch (error: any) {
       console.error('=== UPLOAD ERROR ===');
       console.error('Error details:', error);
@@ -445,7 +587,7 @@ const VideoUpload = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-6 space-y-6">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -565,6 +707,105 @@ const VideoUpload = () => {
               </Button>
             </TabsContent>
           </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* User Submissions */}
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-xl">Suas Submissões</CardTitle>
+          <CardDescription>
+            Gerencie seus vídeos enviados
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingSubmissions ? (
+            <div className="text-center py-4">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+              <p className="text-sm text-muted-foreground mt-2">Carregando submissões...</p>
+            </div>
+          ) : userSubmissions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Você ainda não fez nenhuma submissão.</p>
+              <p className="text-sm">Use o formulário acima para enviar seus vídeos.</p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Arquivo/URL</TableHead>
+                    <TableHead>Tamanho</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {userSubmissions.map((submission) => (
+                    <TableRow key={submission.id}>
+                      <TableCell className="font-medium">
+                        {formatDate(submission.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={submission.submission_type === 'file_upload' ? 'default' : 'secondary'}>
+                          {submission.submission_type === 'file_upload' ? 'Arquivo' : 'Link'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {submission.submission_type === 'file_upload' ? (
+                          <span className="text-sm">
+                            {submission.original_filename || 'Arquivo sem nome'}
+                          </span>
+                        ) : (
+                          <a
+                            href={submission.video_url || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Ver Link
+                          </a>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {formatFileSize(submission.file_size_bytes)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {submission.submission_type === 'file_upload' && submission.file_path && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadFile(
+                                submission.file_path!,
+                                submission.original_filename || 'video'
+                              )}
+                              className="gap-1"
+                            >
+                              <Download className="w-3 h-3" />
+                              Download
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deleteSubmission(submission.id, submission.file_path || undefined)}
+                            className="gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Excluir
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
