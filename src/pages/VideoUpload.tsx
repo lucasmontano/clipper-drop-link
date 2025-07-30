@@ -305,12 +305,18 @@ const VideoUpload = () => {
       }
 
       console.log('=== SAVING URL TO DATABASE ===');
-      console.log('User object:', user); // Debug full user object
+      console.log('Full user object:', JSON.stringify(user, null, 2)); // Debug full user object
       console.log('User email:', user.email); // Debug user email
+      console.log('User metadata:', user.user_metadata); // Debug user metadata
+      console.log('User app metadata:', user.app_metadata); // Debug app metadata
       
-      // Get user email - try user.email first, fallback to user.user_metadata.email
-      const userEmail = user.email || user.user_metadata?.email || null;
-      console.log('Final user email:', userEmail);
+      // Get user email - try multiple sources
+      const userEmail = user.email || 
+                       user.user_metadata?.email || 
+                       user.app_metadata?.email ||
+                       user.identities?.[0]?.identity_data?.email ||
+                       null;
+      console.log('Final user email used:', userEmail);
       
       // Save URL submission to database
       const { data: submissionData, error: submissionError } = await supabase
@@ -504,12 +510,18 @@ const VideoUpload = () => {
       console.log('=== UPLOAD SUCCESSFUL ===');
 
       console.log('=== SAVING FILE TO DATABASE ===');
-      console.log('User object:', user); // Debug full user object
+      console.log('Full user object:', JSON.stringify(user, null, 2)); // Debug full user object
       console.log('User email:', user.email); // Debug user email
+      console.log('User metadata:', user.user_metadata); // Debug user metadata
+      console.log('User app metadata:', user.app_metadata); // Debug app metadata
       
-      // Get user email - try user.email first, fallback to user.user_metadata.email
-      const userEmail = user.email || user.user_metadata?.email || null;
-      console.log('Final user email:', userEmail);
+      // Get user email - try multiple sources
+      const userEmail = user.email || 
+                       user.user_metadata?.email || 
+                       user.app_metadata?.email ||
+                       user.identities?.[0]?.identity_data?.email ||
+                       null;
+      console.log('Final user email used:', userEmail);
       
       // Save file submission to database
       const { data: submissionData, error: submissionError } = await supabase
