@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import VideoUpload from "./pages/VideoUpload";
 import UploadSuccess from "./pages/UploadSuccess";
 import Auth from "./pages/Auth";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/upload" element={<VideoUpload />} />
           <Route path="/upload-success" element={<UploadSuccess />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
