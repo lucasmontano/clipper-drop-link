@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2, LogOut } from "lucide-react";
+import { Upload, Loader2, LogOut, Link } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface UploadConfig {
   max_file_size_mb: number;
@@ -24,6 +25,7 @@ interface RateLimitResult {
 
 const VideoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>('');
   const [uploadConfig, setUploadConfig] = useState<UploadConfig | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -149,6 +151,130 @@ const VideoUpload = () => {
     }
 
     setSelectedFile(file);
+  };
+
+  const validateUrl = (url: string): { isValid: boolean; message: string } => {
+    if (!url) {
+      return { isValid: false, message: "URL é obrigatória" };
+    }
+
+    try {
+      const urlObj = new URL(url);
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        return { isValid: false, message: "URL deve usar protocolo HTTP ou HTTPS" };
+      }
+
+      // Check if URL looks like a video file
+      const pathname = urlObj.pathname.toLowerCase();
+      const hasVideoExtension = uploadConfig?.allowed_formats.some(format => 
+        pathname.endsWith(`.${format}`)
+      );
+
+      if (!hasVideoExtension) {
+        return { 
+          isValid: false, 
+          message: `URL deve apontar para um arquivo de vídeo (${uploadConfig?.allowed_formats.join(', ')})` 
+        };
+      }
+
+      return { isValid: true, message: "" };
+    } catch {
+      return { isValid: false, message: "URL inválida" };
+    }
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVideoUrl(e.target.value);
+  };
+
+  const uploadFromUrl = async () => {
+    if (!videoUrl || !user) {
+      toast({
+        title: "Erro",
+        description: "URL ou usuário não encontrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate URL
+    const validation = validateUrl(videoUrl);
+    if (!validation.isValid) {
+      toast({
+        title: "URL inválida",
+        description: validation.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      console.log('=== STARTING URL UPLOAD PROCESS ===');
+      console.log('Video URL:', videoUrl);
+      console.log('User ID:', user.id);
+
+      // Check rate limit before upload
+      console.log('=== CHECKING RATE LIMIT ===');
+      const { data: rateLimitData, error: rateLimitError } = await supabase
+        .rpc('check_and_increment_upload_attempts', { user_uuid: user.id });
+
+      console.log('Rate limit response:', { rateLimitData, rateLimitError });
+
+      if (rateLimitError) {
+        console.error('Rate limit error:', rateLimitError);
+        throw new Error('Erro ao verificar limite de uploads');
+      }
+
+      const rateLimitResult = rateLimitData as unknown as RateLimitResult;
+      console.log('Rate limit result:', rateLimitResult);
+
+      if (!rateLimitResult.allowed) {
+        console.log('Rate limit exceeded');
+        toast({
+          title: "Limite excedido",
+          description: rateLimitResult.message || "Limite diário de uploads excedido",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call edge function to download and store the video
+      console.log('=== CALLING DOWNLOAD FUNCTION ===');
+      const { data, error } = await supabase.functions.invoke('download-video', {
+        body: { 
+          videoUrl,
+          userId: user.id 
+        }
+      });
+
+      console.log('Download function response:', { data, error });
+
+      if (error) {
+        console.error('Download function error:', error);
+        throw error;
+      }
+
+      console.log('=== URL UPLOAD SUCCESSFUL ===');
+      toast({
+        title: "Upload concluído!",
+        description: `Seu vídeo foi baixado e enviado com sucesso. Você tem ${rateLimitResult.remaining_attempts} uploads restantes hoje.`,
+      });
+
+      // Reset form
+      setVideoUrl('');
+    } catch (error: any) {
+      console.error('=== URL UPLOAD ERROR ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      toast({
+        title: "Erro no upload",
+        description: error.message || "Erro ao fazer upload do vídeo a partir da URL.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const uploadVideo = async () => {
@@ -312,41 +438,91 @@ const VideoUpload = () => {
             </div>
           )}
 
-          {/* File Input */}
-          <div className="space-y-2">
-            <Label htmlFor="video">Selecionar vídeo</Label>
-            <Input
-              id="video"
-              type="file"
-              accept="video/*"
-              onChange={handleFileSelect}
-              ref={fileInputRef}
-            />
-            {selectedFile && (
-              <p className="text-sm text-muted-foreground">
-                Arquivo selecionado: {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
-              </p>
-            )}
-          </div>
+          {/* Upload Options Tabs */}
+          <Tabs defaultValue="file" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="file" className="gap-2">
+                <Upload className="w-4 h-4" />
+                Upload de Arquivo
+              </TabsTrigger>
+              <TabsTrigger value="url" className="gap-2">
+                <Link className="w-4 h-4" />
+                Link do Vídeo
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Upload Button */}
-          <Button
-            onClick={uploadVideo}
-            disabled={isUploading || !selectedFile}
-            className="w-full"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando vídeo...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Fazer Upload
-              </>
-            )}
-          </Button>
+            <TabsContent value="file" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="video">Selecionar vídeo</Label>
+                <Input
+                  id="video"
+                  type="file"
+                  accept="video/*"
+                  onChange={handleFileSelect}
+                  ref={fileInputRef}
+                />
+                {selectedFile && (
+                  <p className="text-sm text-muted-foreground">
+                    Arquivo selecionado: {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+                  </p>
+                )}
+              </div>
+
+              <Button
+                onClick={uploadVideo}
+                disabled={isUploading || !selectedFile}
+                className="w-full"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando vídeo...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Fazer Upload
+                  </>
+                )}
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="url" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="videoUrl">URL do vídeo</Label>
+                <Input
+                  id="videoUrl"
+                  type="url"
+                  value={videoUrl}
+                  onChange={handleUrlChange}
+                  placeholder="https://exemplo.com/video.mp4"
+                />
+                {videoUrl && (
+                  <p className="text-sm text-muted-foreground">
+                    URL: {videoUrl}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                onClick={uploadFromUrl}
+                disabled={isUploading || !videoUrl}
+                className="w-full"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Baixando vídeo...
+                  </>
+                ) : (
+                  <>
+                    <Link className="mr-2 h-4 w-4" />
+                    Baixar e Enviar
+                  </>
+                )}
+              </Button>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

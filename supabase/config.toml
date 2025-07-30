@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.verify-upload]
 verify_jwt = false
+
+[functions.download-video]
+verify_jwt = false
