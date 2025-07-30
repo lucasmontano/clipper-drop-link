@@ -25,13 +25,24 @@ interface VideoSubmission {
   video_url: string | null;
   original_filename: string | null;
   file_size_bytes: number | null;
+  views: number | null;
+  payment_amount: number | null;
+  clip_type: string | null;
   created_at: string;
+}
+
+interface PaymentSummary {
+  email: string;
+  totalViews: number;
+  totalPayment: number;
+  submissionCount: number;
 }
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [submissions, setSubmissions] = useState<VideoSubmission[]>([]);
+  const [paymentSummaries, setPaymentSummaries] = useState<PaymentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
@@ -94,7 +105,15 @@ const AdminDashboard = () => {
 
       if (error) throw error;
       
-      setSubmissions(data || []);
+      const submissionsData = (data || []).map(submission => ({
+        ...submission,
+        views: (submission as any).views || 0,
+        payment_amount: (submission as any).payment_amount || 0,
+        clip_type: (submission as any).clip_type || null
+      }));
+      
+      setSubmissions(submissionsData);
+      calculatePaymentSummaries(submissionsData);
     } catch (error: any) {
       console.error('Error loading submissions:', error);
       toast({
@@ -105,6 +124,40 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculatePaymentSummaries = (submissions: VideoSubmission[]) => {
+    const summaryMap = new Map<string, PaymentSummary>();
+    
+    submissions.forEach(submission => {
+      if (!submission.user_email) return;
+      
+      const email = submission.user_email;
+      const views = submission.views || 0;
+      const payment = submission.payment_amount || 0;
+      
+      if (summaryMap.has(email)) {
+        const existing = summaryMap.get(email)!;
+        summaryMap.set(email, {
+          email,
+          totalViews: existing.totalViews + views,
+          totalPayment: existing.totalPayment + payment,
+          submissionCount: existing.submissionCount + 1
+        });
+      } else {
+        summaryMap.set(email, {
+          email,
+          totalViews: views,
+          totalPayment: payment,
+          submissionCount: 1
+        });
+      }
+    });
+    
+    const summaries = Array.from(summaryMap.values())
+      .sort((a, b) => b.totalPayment - a.totalPayment);
+    
+    setPaymentSummaries(summaries);
   };
 
   const handleSignOut = async () => {
@@ -167,6 +220,16 @@ const AdminDashboard = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('pt-BR');
+  };
+
+  const formatPayment = (amount: number): string => {
+    return `$${amount.toFixed(2)}`;
+  };
+
+  const getClipTypeName = (clipType: string | null): string => {
+    if (clipType === 'perssua') return 'Perssua';
+    if (clipType === 'lucas_montano') return 'Lucas Montano';
+    return 'N/A';
   };
 
   if (!user || loading) {
@@ -261,9 +324,9 @@ const AdminDashboard = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Links de Vídeo</p>
-                    <p className="text-2xl font-bold">
-                      {submissions.filter(s => s.submission_type === 'url_link').length}
+                    <p className="text-sm font-medium text-muted-foreground">Total a Pagar</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatPayment(paymentSummaries.reduce((sum, p) => sum + p.totalPayment, 0))}
                     </p>
                   </div>
                   <LinkIcon className="w-8 h-8 text-muted-foreground" />
@@ -271,6 +334,60 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Payment Summary by Email */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pagamentos por Email</CardTitle>
+              <CardDescription>
+                Resumo dos valores a pagar para cada usuário
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Submissões</TableHead>
+                      <TableHead>Total de Views</TableHead>
+                      <TableHead>Valor a Pagar</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paymentSummaries.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                          Nenhum pagamento encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paymentSummaries.map((summary) => (
+                        <TableRow key={summary.email}>
+                          <TableCell className="font-medium">
+                            {summary.email}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {summary.submissionCount}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {summary.totalViews.toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-semibold text-green-600">
+                              {formatPayment(summary.totalPayment)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Submissions Table */}
           <Card>
@@ -288,15 +405,17 @@ const AdminDashboard = () => {
                       <TableHead>Data</TableHead>
                       <TableHead>Usuário</TableHead>
                       <TableHead>Tipo</TableHead>
+                      <TableHead>Clip</TableHead>
                       <TableHead>Arquivo/URL</TableHead>
-                      <TableHead>Tamanho</TableHead>
+                      <TableHead>Views</TableHead>
+                      <TableHead>Pagamento</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {submissions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center text-muted-foreground">
                           Nenhuma submissão encontrada
                         </TableCell>
                       </TableRow>
@@ -317,6 +436,11 @@ const AdminDashboard = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
+                            <Badge variant="outline">
+                              {getClipTypeName(submission.clip_type)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
                             {submission.submission_type === 'file_upload' ? (
                               <span className="text-sm">
                                 {submission.original_filename || 'Arquivo sem nome'}
@@ -334,7 +458,12 @@ const AdminDashboard = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            {formatFileSize(submission.file_size_bytes)}
+                            {submission.views ? submission.views.toLocaleString() : '0'}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-semibold text-green-600">
+                              {formatPayment(submission.payment_amount || 0)}
+                            </span>
                           </TableCell>
                           <TableCell>
                             {submission.submission_type === 'file_upload' && submission.file_path && (
