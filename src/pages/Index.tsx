@@ -37,7 +37,7 @@ const Index = () => {
         <div 
           className="w-full h-full"
           style={{
-            background: `url('https://yt3.googleusercontent.com/ytc/AIdro_l4XZYJKr0r9XVhFZ7hXr0Q9X0nZRVvZVZVZVZVZVZ=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj') center/cover`,
+            background: `url('/lovable-uploads/212e0abb-aa3f-4645-8b86-5b3dba090171.png') center/cover`,
             filter: 'blur(8px)',
             maskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), transparent 50px, black 150px)',
             WebkitMaskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), transparent 50px, black 150px)',
@@ -47,7 +47,7 @@ const Index = () => {
         <div 
           className="absolute inset-0 w-full h-full"
           style={{
-            background: `url('https://yt3.googleusercontent.com/ytc/AIdro_l4XZYJKr0r9XVhFZ7hXr0Q9X0nZRVvZVZVZVZVZVZ=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj') center/cover`,
+            background: `url('/lovable-uploads/212e0abb-aa3f-4645-8b86-5b3dba090171.png') center/cover`,
             filter: 'blur(0px)',
             maskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), black 50px, transparent 150px)',
             WebkitMaskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), black 50px, transparent 150px)',
