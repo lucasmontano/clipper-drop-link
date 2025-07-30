@@ -77,13 +77,13 @@ const Index = () => {
       {/* Content */}
       <div className="relative z-10 text-center space-y-6">
         <div className="space-y-4">
-          <h1 className="text-4xl font-bold text-white mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-8">
             Lucas Montano
           </h1>
           <Button 
             size="lg" 
             onClick={handleButtonClick}
-            className="gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-300 relative overflow-hidden"
+            className="gap-2 bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary-foreground hover:bg-primary/30 transition-all duration-300 relative overflow-hidden"
             style={{
               '--click-x': `${clickEffect.x}%`,
               '--click-y': `${clickEffect.y}%`,
