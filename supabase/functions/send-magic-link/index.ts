@@ -66,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Magic link:", magicLink);
     
     const emailResponse = await resend.emails.send({
-      from: "Clipper Upload <onboarding@resend.dev>",
+      from: "Clipper Upload <noreply@clipper.lucasmontano.com>",
       to: [email],
       subject: "Confirme seu upload de vídeo",
       html: `
