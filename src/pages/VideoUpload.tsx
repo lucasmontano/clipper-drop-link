@@ -43,6 +43,7 @@ interface VideoSubmission {
   file_size_bytes: number | null;
   views: number | null;
   payment_amount: number | null;
+  clip_type: string | null;
   created_at: string;
 }
 
@@ -50,6 +51,7 @@ const VideoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [views, setViews] = useState<string>('');
+  const [clipType, setClipType] = useState<string>('');
   const [uploadConfig, setUploadConfig] = useState<UploadConfig | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -76,7 +78,8 @@ const VideoUpload = () => {
       setUserSubmissions((data || []).map(submission => ({
         ...submission,
         views: (submission as any).views || 0,
-        payment_amount: (submission as any).payment_amount || 0
+        payment_amount: (submission as any).payment_amount || 0,
+        clip_type: (submission as any).clip_type || null
       })));
     } catch (error: any) {
       console.error('Error loading user submissions:', error);
@@ -312,6 +315,12 @@ const VideoUpload = () => {
     return `$${amount.toFixed(2)}`;
   };
 
+  const getClipTypeName = (clipType: string | null): string => {
+    if (clipType === 'perssua') return 'Perssua';
+    if (clipType === 'lucas_montano') return 'Lucas Montano';
+    return 'N/A';
+  };
+
   const uploadFromUrl = async () => {
     if (!videoUrl || !user) {
       toast({
@@ -392,6 +401,7 @@ const VideoUpload = () => {
           video_url: videoUrl,
           views: viewCount,
           payment_amount: paymentAmount,
+          clip_type: clipType,
           original_filename: videoUrl.split('/').pop() || 'video-link'
         })
         .select()
@@ -416,6 +426,7 @@ const VideoUpload = () => {
       // Reset form
       setVideoUrl('');
       setViews('');
+      setClipType('');
       
       // Reload user submissions
       await loadUserSubmissions();
@@ -705,9 +716,64 @@ const VideoUpload = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-
-          {/* Social Media URL Input */}
+          
+          {/* Clip Type Selection */}
           <div className="space-y-4">
+            <Label>Selecione o tipo de clip</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setClipType('perssua')}
+                className={`relative p-6 border-2 rounded-lg transition-all ${
+                  clipType === 'perssua' 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-muted hover:border-primary/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <img 
+                    src="/lovable-uploads/32c20307-4245-4a82-bee7-2c09b9c83dce.png" 
+                    alt="Perssua" 
+                    className="w-16 h-16 object-contain"
+                  />
+                  <span className="font-medium">Perssua</span>
+                </div>
+                {clipType === 'perssua' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-primary-foreground text-xs">✓</span>
+                  </div>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setClipType('lucas_montano')}
+                className={`relative p-6 border-2 rounded-lg transition-all ${
+                  clipType === 'lucas_montano' 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-muted hover:border-primary/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <img 
+                    src="/lovable-uploads/849a3b77-4aee-422e-8ace-2b0608b7194e.png" 
+                    alt="Lucas Montano" 
+                    className="w-16 h-16 object-contain rounded-full"
+                  />
+                  <span className="font-medium">Lucas Montano</span>
+                </div>
+                {clipType === 'lucas_montano' && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-primary-foreground text-xs">✓</span>
+                  </div>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Social Media URL Input - Only show after clip type is selected */}
+          {clipType && (
+            <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="videoUrl">Link da postagem</Label>
               <div className="relative">
@@ -758,7 +824,7 @@ const VideoUpload = () => {
 
             <Button
               onClick={uploadFromUrl}
-              disabled={isUploading || !videoUrl}
+              disabled={isUploading || !videoUrl || !clipType}
               className="w-full"
             >
               {isUploading ? (
@@ -774,6 +840,7 @@ const VideoUpload = () => {
               )}
             </Button>
           </div>
+          )}
         </CardContent>
       </Card>
 
@@ -804,6 +871,7 @@ const VideoUpload = () => {
                   <TableRow>
                     <TableHead>Data</TableHead>
                     <TableHead>Tipo</TableHead>
+                    <TableHead>Clip</TableHead>
                     <TableHead>Arquivo/URL</TableHead>
                     <TableHead>Views</TableHead>
                     <TableHead>Pagamento</TableHead>
@@ -849,6 +917,11 @@ const VideoUpload = () => {
                       </TableCell>
                       <TableCell>
                         {formatPayment(submission.payment_amount)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {getClipTypeName(submission.clip_type)}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
