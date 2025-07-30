@@ -26,10 +26,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("Recebida requisição de magic link");
     const { email, fileName, fileSize, fileType }: MagicLinkRequest = await req.json();
+    console.log("Dados recebidos:", { email, fileName, fileSize, fileType });
+    
+    // Verificar se a chave do Resend está configurada
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      throw new Error("RESEND_API_KEY não configurada");
+    }
+    console.log("Resend API Key configurada:", resendApiKey ? "Sim" : "Não");
     
     // Generate upload token
     const uploadToken = crypto.randomUUID();
+    console.log("Token gerado:", uploadToken);
     
     // Create upload session
     const { error: sessionError } = await supabase
@@ -43,11 +53,17 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     if (sessionError) {
+      console.error("Erro ao criar sessão no banco:", sessionError);
       throw new Error(`Erro ao criar sessão: ${sessionError.message}`);
     }
+    console.log("Sessão criada com sucesso no banco de dados");
 
     // Send magic link email
-    const magicLink = `${supabaseUrl.replace('supabase.co', 'vercel.app')}/verify-upload?token=${uploadToken}`;
+    const baseUrl = req.headers.get('origin') || 'http://localhost:5173';
+    const magicLink = `${baseUrl}/upload?token=${uploadToken}`;
+    
+    console.log("Tentando enviar email via Resend...");
+    console.log("Magic link:", magicLink);
     
     const emailResponse = await resend.emails.send({
       from: "Clipper Upload <onboarding@resend.dev>",
@@ -65,7 +81,12 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Magic link enviado:", emailResponse);
+    console.log("Resposta do Resend:", JSON.stringify(emailResponse, null, 2));
+    
+    if (emailResponse.error) {
+      console.error("Erro no Resend:", emailResponse.error);
+      throw new Error(`Erro no envio: ${emailResponse.error.message}`);
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 
