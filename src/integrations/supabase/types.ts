@@ -104,6 +104,42 @@ export type Database = {
         }
         Relationships: []
       }
+      video_submissions: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          file_size_bytes: number | null
+          id: string
+          original_filename: string | null
+          submission_type: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          original_filename?: string | null
+          submission_type: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          original_filename?: string | null
+          submission_type?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

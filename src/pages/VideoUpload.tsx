@@ -210,11 +210,11 @@ const VideoUpload = () => {
 
     setIsUploading(true);
     try {
-      console.log('=== STARTING URL UPLOAD PROCESS ===');
+      console.log('=== STARTING URL SUBMISSION PROCESS ===');
       console.log('Video URL:', videoUrl);
       console.log('User ID:', user.id);
 
-      // Check rate limit before upload
+      // Check rate limit before submission
       console.log('=== CHECKING RATE LIMIT ===');
       const { data: rateLimitData, error: rateLimitError } = await supabase
         .rpc('check_and_increment_upload_attempts', { user_uuid: user.id });
@@ -239,37 +239,41 @@ const VideoUpload = () => {
         return;
       }
 
-      // Call edge function to download and store the video
-      console.log('=== CALLING DOWNLOAD FUNCTION ===');
-      const { data, error } = await supabase.functions.invoke('download-video', {
-        body: { 
-          videoUrl,
-          userId: user.id 
-        }
-      });
+      console.log('=== SAVING URL TO DATABASE ===');
+      // Save URL submission to database
+      const { data: submissionData, error: submissionError } = await supabase
+        .from('video_submissions')
+        .insert({
+          user_id: user.id,
+          submission_type: 'url_link',
+          video_url: videoUrl,
+          original_filename: videoUrl.split('/').pop() || 'video-link'
+        })
+        .select()
+        .single();
 
-      console.log('Download function response:', { data, error });
-
-      if (error) {
-        console.error('Download function error:', error);
-        throw error;
+      if (submissionError) {
+        console.error('Database insert error:', submissionError);
+        throw submissionError;
       }
 
-      console.log('=== URL UPLOAD SUCCESSFUL ===');
+      console.log('=== URL SUBMISSION SUCCESSFUL ===');
+      console.log('Submission data:', submissionData);
+
       toast({
-        title: "Upload concluído!",
-        description: `Seu vídeo foi baixado e enviado com sucesso. Você tem ${rateLimitResult.remaining_attempts} uploads restantes hoje.`,
+        title: "Submissão concluída!",
+        description: `Seu link de vídeo foi salvo com sucesso. Você tem ${rateLimitResult.remaining_attempts} submissões restantes hoje.`,
       });
 
       // Reset form
       setVideoUrl('');
     } catch (error: any) {
-      console.error('=== URL UPLOAD ERROR ===');
+      console.error('=== URL SUBMISSION ERROR ===');
       console.error('Error details:', error);
       console.error('Error message:', error.message);
       toast({
-        title: "Erro no upload",
-        description: error.message || "Erro ao fazer upload do vídeo a partir da URL.",
+        title: "Erro na submissão",
+        description: error.message || "Erro ao salvar o link do vídeo.",
         variant: "destructive",
       });
     } finally {
@@ -339,6 +343,27 @@ const VideoUpload = () => {
       }
 
       console.log('=== UPLOAD SUCCESSFUL ===');
+
+      // Save file submission to database
+      const { data: submissionData, error: submissionError } = await supabase
+        .from('video_submissions')
+        .insert({
+          user_id: user.id,
+          submission_type: 'file_upload',
+          file_path: data.path,
+          original_filename: selectedFile.name,
+          file_size_bytes: selectedFile.size
+        })
+        .select()
+        .single();
+
+      if (submissionError) {
+        console.error('Database insert error:', submissionError);
+        console.warn('File uploaded but not recorded in submissions table');
+      } else {
+        console.log('Submission recorded:', submissionData);
+      }
+
       toast({
         title: "Upload concluído!",
         description: `Seu vídeo foi enviado com sucesso. Você tem ${rateLimitResult.remaining_attempts} uploads restantes hoje.`,
@@ -512,12 +537,12 @@ const VideoUpload = () => {
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Baixando vídeo...
+                    Salvando link...
                   </>
                 ) : (
                   <>
                     <Link className="mr-2 h-4 w-4" />
-                    Baixar e Enviar
+                    Salvar Link
                   </>
                 )}
               </Button>
