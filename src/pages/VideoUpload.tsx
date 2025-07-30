@@ -74,25 +74,42 @@ const VideoUpload = () => {
   };
 
   const validateFile = (file: File): { isValid: boolean; message: string } => {
-    if (!uploadConfig) return { isValid: false, message: "Configurações não carregadas" };
+    console.log('=== FILE VALIDATION DEBUG ===');
+    console.log('Upload config:', uploadConfig);
+    console.log('File name:', file.name);
+    console.log('File size (bytes):', file.size);
+    console.log('File size (MB):', file.size / (1024 * 1024));
+    
+    if (!uploadConfig) {
+      console.log('Upload config not loaded');
+      return { isValid: false, message: "Configurações não carregadas" };
+    }
 
     const fileSizeMB = file.size / (1024 * 1024);
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    
+    console.log('Calculated file size MB:', fileSizeMB);
+    console.log('Max allowed MB:', uploadConfig.max_file_size_mb);
+    console.log('File extension:', fileExtension);
+    console.log('Allowed formats:', uploadConfig.allowed_formats);
 
     if (fileSizeMB > uploadConfig.max_file_size_mb) {
+      console.log('File too large!');
       return { 
         isValid: false, 
-        message: `Arquivo muito grande. Máximo permitido: ${uploadConfig.max_file_size_mb}MB` 
+        message: `Arquivo muito grande. Tamanho: ${fileSizeMB.toFixed(2)}MB, Máximo permitido: ${uploadConfig.max_file_size_mb}MB` 
       };
     }
 
     if (!fileExtension || !uploadConfig.allowed_formats.includes(fileExtension)) {
+      console.log('Invalid format!');
       return { 
         isValid: false, 
         message: `Formato não permitido. Formatos aceitos: ${uploadConfig.allowed_formats.join(', ')}` 
       };
     }
 
+    console.log('File validation passed!');
     return { isValid: true, message: "" };
   };
 
