@@ -106,12 +106,36 @@ All colors MUST be HSL.
 
 @keyframes button-cut {
   0% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  25% {
+    transform: scale(1.1) rotate(-2deg);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.3);
   }
   50% {
-    transform: scale(1.02);
+    transform: scale(0.95) rotate(1deg);
+    box-shadow: 0 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  75% {
+    transform: scale(1.05) rotate(-0.5deg);
+    box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.05);
   }
   100% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 0 40px rgba(255, 255, 255, 0);
   }
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-2px) translateY(-1px); }
+  20% { transform: translateX(2px) translateY(1px); }
+  30% { transform: translateX(-1px) translateY(-2px); }
+  40% { transform: translateX(1px) translateY(2px); }
+  50% { transform: translateX(-2px) translateY(-1px); }
+  60% { transform: translateX(2px) translateY(1px); }
+  70% { transform: translateX(-1px) translateY(-2px); }
+  80% { transform: translateX(1px) translateY(-1px); }
+  90% { transform: translateX(-1px) translateY(1px); }
 }

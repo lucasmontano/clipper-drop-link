@@ -28,16 +28,25 @@ const Index = () => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width * 100;
     const y = (e.clientY - rect.top) / rect.height * 100;
+    
     setClickEffect({
       active: true,
       x,
       y
     });
 
+    // Add screen shake effect
+    document.body.style.animation = 'screen-shake 0.5s ease-in-out';
+    
     // Navigate after animation completes
     setTimeout(() => {
       navigate('/auth');
-    }, 600);
+    }, 800);
+    
+    // Clean up screen shake
+    setTimeout(() => {
+      document.body.style.animation = '';
+    }, 500);
   };
   return <div ref={containerRef} className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{
     '--mouse-x': '50%',
