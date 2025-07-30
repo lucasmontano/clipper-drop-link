@@ -305,6 +305,7 @@ const VideoUpload = () => {
       }
 
       console.log('=== SAVING URL TO DATABASE ===');
+      console.log('User email:', user.email); // Debug user email
       // Save URL submission to database
       const { data: submissionData, error: submissionError } = await supabase
         .from('video_submissions')
@@ -496,6 +497,8 @@ const VideoUpload = () => {
 
       console.log('=== UPLOAD SUCCESSFUL ===');
 
+      console.log('=== SAVING FILE TO DATABASE ===');
+      console.log('User email:', user.email); // Debug user email
       // Save file submission to database
       const { data: submissionData, error: submissionError } = await supabase
         .from('video_submissions')
