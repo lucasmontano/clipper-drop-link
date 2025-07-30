@@ -17,10 +17,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("Verify upload request received:", req.method, req.url);
     const url = new URL(req.url);
     const token = url.searchParams.get('token');
+    console.log("Token extracted:", token);
     
     if (!token) {
+      console.log("No token provided");
       return new Response(JSON.stringify({ error: "Token não fornecido" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -28,6 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Verify and update upload session
+    console.log("Looking for session with token:", token);
     const { data: session, error: sessionError } = await supabase
       .from('upload_sessions')
       .select('*')
@@ -35,7 +39,10 @@ const handler = async (req: Request): Promise<Response> => {
       .gt('expires_at', new Date().toISOString())
       .single();
 
+    console.log("Session query result:", { session, sessionError });
+
     if (sessionError || !session) {
+      console.log("Session not found or expired");
       return new Response(JSON.stringify({ error: "Token inválido ou expirado" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
