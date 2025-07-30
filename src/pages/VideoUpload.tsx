@@ -163,17 +163,28 @@ const VideoUpload = () => {
 
     setIsUploading(true);
     try {
+      console.log('=== STARTING UPLOAD PROCESS ===');
+      console.log('File size (bytes):', selectedFile.size);
+      console.log('File size (MB):', selectedFile.size / (1024 * 1024));
+      console.log('User ID:', user.id);
+
       // Check rate limit before upload
+      console.log('=== CHECKING RATE LIMIT ===');
       const { data: rateLimitData, error: rateLimitError } = await supabase
         .rpc('check_and_increment_upload_attempts', { user_uuid: user.id });
 
+      console.log('Rate limit response:', { rateLimitData, rateLimitError });
+
       if (rateLimitError) {
+        console.error('Rate limit error:', rateLimitError);
         throw new Error('Erro ao verificar limite de uploads');
       }
 
       const rateLimitResult = rateLimitData as unknown as RateLimitResult;
+      console.log('Rate limit result:', rateLimitResult);
 
       if (!rateLimitResult.allowed) {
+        console.log('Rate limit exceeded');
         toast({
           title: "Limite excedido",
           description: rateLimitResult.message || "Limite diário de uploads excedido",
@@ -182,8 +193,10 @@ const VideoUpload = () => {
         return;
       }
 
+      console.log('=== STARTING STORAGE UPLOAD ===');
       const fileName = `${Date.now()}-${selectedFile.name}`;
       const filePath = `${user.id}/${fileName}`;
+      console.log('Upload path:', filePath);
 
       const { data, error } = await supabase.storage
         .from('video-uploads')
@@ -192,8 +205,14 @@ const VideoUpload = () => {
           upsert: false
         });
 
-      if (error) throw error;
+      console.log('Storage upload response:', { data, error });
 
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw error;
+      }
+
+      console.log('=== UPLOAD SUCCESSFUL ===');
       toast({
         title: "Upload concluído!",
         description: `Seu vídeo foi enviado com sucesso. Você tem ${rateLimitResult.remaining_attempts} uploads restantes hoje.`,
@@ -205,7 +224,10 @@ const VideoUpload = () => {
         fileInputRef.current.value = "";
       }
     } catch (error: any) {
-      console.error('Erro no upload:', error);
+      console.error('=== UPLOAD ERROR ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       toast({
         title: "Erro no upload",
         description: error.message || "Erro ao fazer upload do vídeo.",
