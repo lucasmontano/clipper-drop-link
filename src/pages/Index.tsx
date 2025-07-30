@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Scissors } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 const Index = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const [clickEffect, setClickEffect] = useState({ active: false, x: 0, y: 0 });
 
   useEffect(() => {
@@ -25,15 +26,17 @@ const Index = () => {
   }, []);
 
   const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
     setClickEffect({ active: true, x, y });
     
-    // Reset the effect after animation
+    // Navigate after animation completes
     setTimeout(() => {
-      setClickEffect({ active: false, x: 0, y: 0 });
+      navigate('/auth');
     }, 600);
   };
 
@@ -77,34 +80,32 @@ const Index = () => {
           <h1 className="text-4xl font-bold text-white mb-8">
             Lucas Montano
           </h1>
-          <Link to="/auth">
-            <Button 
-              size="lg" 
-              onClick={handleButtonClick}
-              className="gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-300 relative overflow-hidden"
-              style={{
-                '--click-x': `${clickEffect.x}%`,
-                '--click-y': `${clickEffect.y}%`,
-              } as React.CSSProperties}
-            >
-              {/* Cut effect overlay */}
-              {clickEffect.active && (
-                <div 
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: `
-                      linear-gradient(45deg, transparent 0%, transparent 49%, #ff4444 49.5%, #ff4444 50.5%, transparent 51%, transparent 100%),
-                      linear-gradient(-45deg, transparent 0%, transparent 49%, #ff4444 49.5%, #ff4444 50.5%, transparent 51%, transparent 100%)
-                    `,
-                    transformOrigin: `${clickEffect.x}% ${clickEffect.y}%`,
-                    animation: 'cut-effect 0.6s ease-out forwards',
-                  }}
-                />
-              )}
-              <Scissors className="w-5 h-5" />
-              Iniciar Clipagem
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            onClick={handleButtonClick}
+            className="gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-300 relative overflow-hidden"
+            style={{
+              '--click-x': `${clickEffect.x}%`,
+              '--click-y': `${clickEffect.y}%`,
+            } as React.CSSProperties}
+          >
+            {/* Cut effect overlay */}
+            {clickEffect.active && (
+              <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `
+                    linear-gradient(45deg, transparent 0%, transparent 49%, #ff4444 49.5%, #ff4444 50.5%, transparent 51%, transparent 100%),
+                    linear-gradient(-45deg, transparent 0%, transparent 49%, #ff4444 49.5%, #ff4444 50.5%, transparent 51%, transparent 100%)
+                  `,
+                  transformOrigin: `${clickEffect.x}% ${clickEffect.y}%`,
+                  animation: 'cut-effect 0.6s ease-out forwards',
+                }}
+              />
+            )}
+            <Scissors className="w-5 h-5" />
+            Iniciar Clipagem
+          </Button>
         </div>
       </div>
     </div>
