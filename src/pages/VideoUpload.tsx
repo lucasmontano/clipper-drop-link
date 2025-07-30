@@ -153,6 +153,28 @@ const VideoUpload = () => {
     setSelectedFile(file);
   };
 
+  const sendThankYouEmail = async (submissionType: 'file_upload' | 'url_link', fileName?: string, videoUrl?: string) => {
+    try {
+      console.log('=== SENDING THANK YOU EMAIL ===');
+      const { data, error } = await supabase.functions.invoke('send-thank-you-email', {
+        body: {
+          userEmail: user?.email,
+          submissionType,
+          fileName,
+          videoUrl
+        }
+      });
+
+      if (error) {
+        console.error('Email sending error:', error);
+      } else {
+        console.log('Thank you email sent successfully:', data);
+      }
+    } catch (error) {
+      console.error('Error sending thank you email:', error);
+    }
+  };
+
   const validateUrl = (url: string): { isValid: boolean; message: string } => {
     if (!url) {
       return { isValid: false, message: "URL é obrigatória" };
@@ -260,6 +282,9 @@ const VideoUpload = () => {
       console.log('=== URL SUBMISSION SUCCESSFUL ===');
       console.log('Submission data:', submissionData);
 
+      // Send thank you email
+      await sendThankYouEmail('url_link', undefined, videoUrl);
+
       toast({
         title: "Submissão concluída!",
         description: `Seu link de vídeo foi salvo com sucesso. Você tem ${rateLimitResult.remaining_attempts} submissões restantes hoje.`,
@@ -363,6 +388,9 @@ const VideoUpload = () => {
       } else {
         console.log('Submission recorded:', submissionData);
       }
+
+      // Send thank you email
+      await sendThankYouEmail('file_upload', selectedFile.name);
 
       toast({
         title: "Upload concluído!",
