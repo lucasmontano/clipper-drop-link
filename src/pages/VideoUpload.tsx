@@ -682,7 +682,7 @@ const VideoUpload = () => {
           {/* Social Media URL Input */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="videoUrl">URL da mídia social</Label>
+              <Label htmlFor="videoUrl">Link da postagem</Label>
               <div className="relative">
                 <Input
                   id="videoUrl"
