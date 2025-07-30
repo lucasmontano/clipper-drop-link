@@ -770,7 +770,7 @@ const VideoUpload = () => {
 
   return (
     <div className="min-h-screen bg-background p-6 space-y-6">
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-6xl mx-auto">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
@@ -936,7 +936,7 @@ const VideoUpload = () => {
       </Card>
 
       {/* User Submissions */}
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-6xl mx-auto">
         <CardHeader>
           <CardTitle className="text-xl">Suas Submissões</CardTitle>
           <CardDescription>
