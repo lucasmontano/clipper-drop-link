@@ -10,12 +10,14 @@ const Index = () => {
       <div className="text-center space-y-6">
         <h1 className="text-4xl font-bold mb-4">Sistema de Upload de Vídeos</h1>
         <p className="text-xl text-muted-foreground">Para Clippers</p>
-        <Link to="/upload">
-          <Button size="lg" className="gap-2">
-            <Upload className="w-5 h-5" />
-            Fazer Upload de Vídeo
-          </Button>
-        </Link>
+        <div className="space-y-4">
+          <Link to="/auth">
+            <Button size="lg" className="gap-2">
+              <Upload className="w-5 h-5" />
+              Fazer Login para Upload
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
