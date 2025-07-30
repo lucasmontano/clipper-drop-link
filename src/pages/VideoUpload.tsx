@@ -53,6 +53,7 @@ const VideoUpload = () => {
   }, [navigate]);
 
   const loadUploadConfig = async () => {
+    console.log('=== LOADING UPLOAD CONFIG ===');
     try {
       const { data, error } = await supabase
         .from('upload_configs')
@@ -61,7 +62,11 @@ const VideoUpload = () => {
         .limit(1)
         .single();
 
+      console.log('Upload config query result:', { data, error });
+
       if (error) throw error;
+      
+      console.log('Setting upload config:', data);
       setUploadConfig(data);
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
@@ -114,10 +119,18 @@ const VideoUpload = () => {
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('=== FILE SELECT TRIGGERED ===');
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    console.log('File selected:', file.name, 'Upload config state:', uploadConfig);
 
     const validation = validateFile(file);
+    console.log('Validation result:', validation);
+    
     if (!validation.isValid) {
       toast({
         title: "Arquivo inválido",
