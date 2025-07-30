@@ -113,6 +113,7 @@ export type Database = {
           original_filename: string | null
           submission_type: string
           updated_at: string
+          user_email: string | null
           user_id: string
           video_url: string | null
         }
@@ -124,6 +125,7 @@ export type Database = {
           original_filename?: string | null
           submission_type: string
           updated_at?: string
+          user_email?: string | null
           user_id: string
           video_url?: string | null
         }
@@ -135,6 +137,7 @@ export type Database = {
           original_filename?: string | null
           submission_type?: string
           updated_at?: string
+          user_email?: string | null
           user_id?: string
           video_url?: string | null
         }

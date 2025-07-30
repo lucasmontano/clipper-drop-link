@@ -19,6 +19,7 @@ import {
 interface VideoSubmission {
   id: string;
   user_id: string;
+  user_email: string | null;
   submission_type: string;
   file_path: string | null;
   video_url: string | null;
@@ -306,8 +307,8 @@ const AdminDashboard = () => {
                             {formatDate(submission.created_at)}
                           </TableCell>
                           <TableCell>
-                            <span className="font-mono text-xs">
-                              {submission.user_id.slice(0, 8)}...
+                            <span className="text-sm">
+                              {submission.user_email || 'Email não disponível'}
                             </span>
                           </TableCell>
                           <TableCell>
