@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          created_at: string
+          id: string
+          payment_amount: number
+          payment_date: string
+          status: string
+          submission_ids: string[]
+          total_views: number
+          updated_at: string
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_amount?: number
+          payment_date?: string
+          status?: string
+          submission_ids?: string[]
+          total_views?: number
+          updated_at?: string
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_amount?: number
+          payment_date?: string
+          status?: string
+          submission_ids?: string[]
+          total_views?: number
+          updated_at?: string
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -130,40 +169,49 @@ export type Database = {
       }
       video_submissions: {
         Row: {
+          clip_type: string | null
           created_at: string
           file_path: string | null
           file_size_bytes: number | null
           id: string
           original_filename: string | null
+          payment_amount: number | null
           submission_type: string
           updated_at: string
           user_email: string | null
           user_id: string
           video_url: string | null
+          views: number | null
         }
         Insert: {
+          clip_type?: string | null
           created_at?: string
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
           original_filename?: string | null
+          payment_amount?: number | null
           submission_type: string
           updated_at?: string
           user_email?: string | null
           user_id: string
           video_url?: string | null
+          views?: number | null
         }
         Update: {
+          clip_type?: string | null
           created_at?: string
           file_path?: string | null
           file_size_bytes?: number | null
           id?: string
           original_filename?: string | null
+          payment_amount?: number | null
           submission_type?: string
           updated_at?: string
           user_email?: string | null
           user_id?: string
           video_url?: string | null
+          views?: number | null
         }
         Relationships: []
       }

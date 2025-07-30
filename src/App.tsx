@@ -8,6 +8,7 @@ import VideoUpload from "./pages/VideoUpload";
 import UploadSuccess from "./pages/UploadSuccess";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
+import PaymentHistory from "./pages/PaymentHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/upload" element={<VideoUpload />} />
           <Route path="/upload-success" element={<UploadSuccess />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/payments" element={<PaymentHistory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

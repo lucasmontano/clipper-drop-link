@@ -35,7 +35,19 @@ interface PaymentSummary {
   email: string;
   totalViews: number;
   totalPayment: number;
+  paidAmount: number;
+  pendingPayment: number;
   submissionCount: number;
+  submissionIds: string[];
+}
+
+interface Payment {
+  id: string;
+  user_email: string;
+  total_views: number;
+  payment_amount: number;
+  payment_date: string;
+  status: string;
 }
 
 const AdminDashboard = () => {
@@ -43,8 +55,10 @@ const AdminDashboard = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [submissions, setSubmissions] = useState<VideoSubmission[]>([]);
   const [paymentSummaries, setPaymentSummaries] = useState<PaymentSummary[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -98,6 +112,8 @@ const AdminDashboard = () => {
   const loadSubmissions = async () => {
     try {
       setLoading(true);
+      
+      // Load submissions
       const { data, error } = await supabase
         .from('video_submissions')
         .select('*')
@@ -112,8 +128,17 @@ const AdminDashboard = () => {
         clip_type: (submission as any).clip_type || null
       }));
       
+      // Load payments
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('payments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (paymentsError) throw paymentsError;
+      
       setSubmissions(submissionsData);
-      calculatePaymentSummaries(submissionsData);
+      setPayments(paymentsData || []);
+      calculatePaymentSummaries(submissionsData, paymentsData || []);
     } catch (error: any) {
       console.error('Error loading submissions:', error);
       toast({
@@ -126,7 +151,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const calculatePaymentSummaries = (submissions: VideoSubmission[]) => {
+  const calculatePaymentSummaries = (submissions: VideoSubmission[], payments: Payment[]) => {
     const summaryMap = new Map<string, PaymentSummary>();
     
     submissions.forEach(submission => {
@@ -142,22 +167,83 @@ const AdminDashboard = () => {
           email,
           totalViews: existing.totalViews + views,
           totalPayment: existing.totalPayment + payment,
-          submissionCount: existing.submissionCount + 1
+          paidAmount: existing.paidAmount,
+          pendingPayment: existing.pendingPayment,
+          submissionCount: existing.submissionCount + 1,
+          submissionIds: [...existing.submissionIds, submission.id]
         });
       } else {
         summaryMap.set(email, {
           email,
           totalViews: views,
           totalPayment: payment,
-          submissionCount: 1
+          paidAmount: 0,
+          pendingPayment: payment,
+          submissionCount: 1,
+          submissionIds: [submission.id]
+        });
+      }
+    });
+
+    // Calculate paid amounts
+    payments.forEach(payment => {
+      if (summaryMap.has(payment.user_email)) {
+        const existing = summaryMap.get(payment.user_email)!;
+        summaryMap.set(payment.user_email, {
+          ...existing,
+          paidAmount: existing.paidAmount + payment.payment_amount,
+          pendingPayment: existing.totalPayment - (existing.paidAmount + payment.payment_amount)
         });
       }
     });
     
     const summaries = Array.from(summaryMap.values())
-      .sort((a, b) => b.totalPayment - a.totalPayment);
+      .sort((a, b) => b.pendingPayment - a.pendingPayment);
     
     setPaymentSummaries(summaries);
+  };
+
+  const handleCreatePayment = async (summary: PaymentSummary) => {
+    if (summary.pendingPayment <= 0) {
+      toast({
+        title: "Erro",
+        description: "Não há valor pendente para este usuário.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setProcessingPayment(summary.email);
+      
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          userEmail: summary.email,
+          totalViews: summary.totalViews,
+          paymentAmount: summary.pendingPayment,
+          submissionIds: summary.submissionIds
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Pagamento criado",
+        description: `Email de pagamento enviado para ${summary.email}`,
+      });
+
+      // Reload data
+      loadSubmissions();
+    } catch (error: any) {
+      console.error('Error creating payment:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar o pagamento.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingPayment(null);
+    }
   };
 
   const handleSignOut = async () => {
@@ -345,46 +431,71 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Submissões</TableHead>
-                      <TableHead>Total de Views</TableHead>
-                      <TableHead>Valor a Pagar</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paymentSummaries.length === 0 ? (
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
-                          Nenhum pagamento encontrado
-                        </TableCell>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Submissões</TableHead>
+                        <TableHead>Total de Views</TableHead>
+                        <TableHead>Valor Total</TableHead>
+                        <TableHead>Valor Pago</TableHead>
+                        <TableHead>Pendente</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
-                    ) : (
-                      paymentSummaries.map((summary) => (
-                        <TableRow key={summary.email}>
-                          <TableCell className="font-medium">
-                            {summary.email}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {summary.submissionCount}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {summary.totalViews.toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-semibold text-green-600">
-                              {formatPayment(summary.totalPayment)}
-                            </span>
+                    </TableHeader>
+                    <TableBody>
+                      {paymentSummaries.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground">
+                            Nenhum pagamento encontrado
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                      ) : (
+                        paymentSummaries.map((summary) => (
+                          <TableRow key={summary.email}>
+                            <TableCell className="font-medium">
+                              {summary.email}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {summary.submissionCount}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {summary.totalViews.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-semibold text-green-600">
+                                {formatPayment(summary.totalPayment)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-semibold text-blue-600">
+                                {formatPayment(summary.paidAmount)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-semibold text-orange-600">
+                                {formatPayment(summary.pendingPayment)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {summary.pendingPayment > 0 && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleCreatePayment(summary)}
+                                  disabled={processingPayment === summary.email}
+                                  className="gap-1"
+                                >
+                                  {processingPayment === summary.email ? 'Processando...' : 'Pagar'}
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
               </div>
             </CardContent>
           </Card>

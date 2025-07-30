@@ -778,15 +778,26 @@ const VideoUpload = () => {
                 Bem-vindo, {user.email}!
               </CardDescription>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              className="gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/payments')}
+                className="gap-2"
+              >
+                <span>💰</span>
+                Meus Pagamentos
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
