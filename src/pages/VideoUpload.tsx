@@ -660,7 +660,7 @@ const VideoUpload = () => {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-2xl font-bold">
-                Upload de Vídeo para Clippers
+                Adicionar publicação feita
               </CardTitle>
               <CardDescription>
                 Bem-vindo, {user.email}!
