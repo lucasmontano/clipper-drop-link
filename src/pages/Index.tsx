@@ -34,21 +34,20 @@ const Index = () => {
     >
       {/* YouTube Channel Background */}
       <div className="absolute inset-0 w-full h-full">
-        <iframe
-          src="https://www.youtube.com/embed?listType=playlist&list=UUlucasmontano&autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1"
-          className="w-full h-full object-cover"
+        <div 
+          className="w-full h-full"
           style={{
+            background: `url('https://yt3.googleusercontent.com/ytc/AIdro_l4XZYJKr0r9XVhFZ7hXr0Q9X0nZRVvZVZVZVZVZVZ=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj') center/cover`,
             filter: 'blur(8px)',
             maskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), transparent 50px, black 150px)',
             WebkitMaskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), transparent 50px, black 150px)',
             transform: 'scale(1.1)',
           }}
-          allow="autoplay; encrypted-media"
         />
         <div 
           className="absolute inset-0 w-full h-full"
           style={{
-            background: `url('https://yt3.googleusercontent.com/KqXAFm1ZFe0z5VqjJ8Q3dXoQOD5kl_FLsOjGKLEfX5Uo5o_nEQb1K8DqL2V1Q7BjO5Xo8XQ=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj') center/cover`,
+            background: `url('https://yt3.googleusercontent.com/ytc/AIdro_l4XZYJKr0r9XVhFZ7hXr0Q9X0nZRVvZVZVZVZVZVZ=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj') center/cover`,
             filter: 'blur(0px)',
             maskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), black 50px, transparent 150px)',
             WebkitMaskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), black 50px, transparent 150px)',
