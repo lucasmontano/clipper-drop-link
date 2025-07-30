@@ -87,22 +87,17 @@ const Index = () => {
             style={{
               '--click-x': `${clickEffect.x}%`,
               '--click-y': `${clickEffect.y}%`,
+              maskImage: clickEffect.active ? `
+                linear-gradient(45deg, black 0%, black calc(var(--click-x) - 2px), transparent calc(var(--click-x) - 1px), transparent calc(var(--click-x) + 1px), black calc(var(--click-x) + 2px), black 100%),
+                linear-gradient(-45deg, black 0%, black calc(var(--click-y) - 2px), transparent calc(var(--click-y) - 1px), transparent calc(var(--click-y) + 1px), black calc(var(--click-y) + 2px), black 100%)
+              ` : undefined,
+              WebkitMaskImage: clickEffect.active ? `
+                linear-gradient(45deg, black 0%, black calc(var(--click-x) - 2px), transparent calc(var(--click-x) - 1px), transparent calc(var(--click-x) + 1px), black calc(var(--click-x) + 2px), black 100%),
+                linear-gradient(-45deg, black 0%, black calc(var(--click-y) - 2px), transparent calc(var(--click-y) - 1px), transparent calc(var(--click-y) + 1px), black calc(var(--click-y) + 2px), black 100%)
+              ` : undefined,
+              animation: clickEffect.active ? 'button-cut 0.6s ease-out forwards' : undefined,
             } as React.CSSProperties}
           >
-            {/* Cut effect overlay */}
-            {clickEffect.active && (
-              <div 
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background: `
-                    linear-gradient(45deg, transparent 0%, transparent 49%, #ff4444 49.5%, #ff4444 50.5%, transparent 51%, transparent 100%),
-                    linear-gradient(-45deg, transparent 0%, transparent 49%, #ff4444 49.5%, #ff4444 50.5%, transparent 51%, transparent 100%)
-                  `,
-                  transformOrigin: `${clickEffect.x}% ${clickEffect.y}%`,
-                  animation: 'cut-effect 0.6s ease-out forwards',
-                }}
-              />
-            )}
             <Scissors className="w-5 h-5" />
             Iniciar Clipagem
           </Button>
