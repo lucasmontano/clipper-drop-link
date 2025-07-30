@@ -663,7 +663,7 @@ const VideoUpload = () => {
                 Upload de Vídeo para Clippers
               </CardTitle>
               <CardDescription>
-                Bem-vindo, {user.email}! Envie seus vídeos com segurança.
+                Bem-vindo, {user.email}!
               </CardDescription>
             </div>
             <Button
