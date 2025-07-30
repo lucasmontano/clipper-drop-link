@@ -761,7 +761,6 @@ const VideoUpload = () => {
                     <TableHead>Data</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Arquivo/URL</TableHead>
-                    <TableHead>Tamanho</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -798,9 +797,6 @@ const VideoUpload = () => {
                             </a>
                           </div>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {formatFileSize(submission.file_size_bytes)}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
