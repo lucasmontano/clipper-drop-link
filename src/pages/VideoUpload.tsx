@@ -104,11 +104,6 @@ const VideoUpload = () => {
         
         if (!session?.user) {
           navigate('/auth');
-        } else {
-          // Load user submissions when user is authenticated
-          setTimeout(() => {
-            loadUserSubmissions();
-          }, 0);
         }
       }
     );
@@ -120,13 +115,18 @@ const VideoUpload = () => {
       
       if (!session?.user) {
         navigate('/auth');
-      } else {
-        loadUserSubmissions();
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Separate effect to load submissions when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserSubmissions();
+    }
+  }, [user]);
 
   const loadUploadConfig = async () => {
     console.log('=== LOADING UPLOAD CONFIG ===');
@@ -890,6 +890,11 @@ const VideoUpload = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        <Badge variant="outline">
+                          {getClipTypeName(submission.clip_type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
                         {submission.submission_type === 'file_upload' ? (
                           <span className="text-sm">
                             {submission.original_filename || 'Arquivo sem nome'}
@@ -917,11 +922,6 @@ const VideoUpload = () => {
                       </TableCell>
                       <TableCell>
                         {formatPayment(submission.payment_amount)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {getClipTypeName(submission.clip_type)}
-                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
