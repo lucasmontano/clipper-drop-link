@@ -41,12 +41,15 @@ interface VideoSubmission {
   video_url: string | null;
   original_filename: string | null;
   file_size_bytes: number | null;
+  views: number | null;
+  payment_amount: number | null;
   created_at: string;
 }
 
 const VideoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
+  const [views, setViews] = useState<string>('');
   const [uploadConfig, setUploadConfig] = useState<UploadConfig | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -70,7 +73,11 @@ const VideoUpload = () => {
 
       if (error) throw error;
       
-      setUserSubmissions(data || []);
+      setUserSubmissions((data || []).map(submission => ({
+        ...submission,
+        views: (submission as any).views || 0,
+        payment_amount: (submission as any).payment_amount || 0
+      })));
     } catch (error: any) {
       console.error('Error loading user submissions:', error);
       toast({
@@ -292,6 +299,19 @@ const VideoUpload = () => {
     setVideoUrl(e.target.value);
   };
 
+  const handleViewsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setViews(e.target.value);
+  };
+
+  const calculatePayment = (viewCount: number): number => {
+    return Math.round((viewCount / 1000) * 100) / 100; // $1 per 1000 views, rounded to 2 decimals
+  };
+
+  const formatPayment = (amount: number | null): string => {
+    if (!amount) return '$0.00';
+    return `$${amount.toFixed(2)}`;
+  };
+
   const uploadFromUrl = async () => {
     if (!videoUrl || !user) {
       toast({
@@ -358,6 +378,10 @@ const VideoUpload = () => {
                        null;
       console.log('Final user email used:', userEmail);
       
+      // Calculate payment based on views
+      const viewCount = parseInt(views) || 0;
+      const paymentAmount = calculatePayment(viewCount);
+      
       // Save URL submission to database
       const { data: submissionData, error: submissionError } = await supabase
         .from('video_submissions')
@@ -366,6 +390,8 @@ const VideoUpload = () => {
           user_email: userEmail,
           submission_type: 'url_link',
           video_url: videoUrl,
+          views: viewCount,
+          payment_amount: paymentAmount,
           original_filename: videoUrl.split('/').pop() || 'video-link'
         })
         .select()
@@ -389,6 +415,7 @@ const VideoUpload = () => {
 
       // Reset form
       setVideoUrl('');
+      setViews('');
       
       // Reload user submissions
       await loadUserSubmissions();
@@ -712,6 +739,23 @@ const VideoUpload = () => {
               )}
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="views">Número de visualizações</Label>
+              <Input
+                id="views"
+                type="number"
+                value={views}
+                onChange={handleViewsChange}
+                placeholder="Ex: 1500"
+                min="0"
+              />
+              {views && !isNaN(parseInt(views)) && parseInt(views) > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  Pagamento calculado: {formatPayment(calculatePayment(parseInt(views)))}
+                </div>
+              )}
+            </div>
+
             <Button
               onClick={uploadFromUrl}
               disabled={isUploading || !videoUrl}
@@ -761,6 +805,8 @@ const VideoUpload = () => {
                     <TableHead>Data</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Arquivo/URL</TableHead>
+                    <TableHead>Views</TableHead>
+                    <TableHead>Pagamento</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -797,6 +843,12 @@ const VideoUpload = () => {
                             </a>
                           </div>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        {submission.views ? submission.views.toLocaleString() : '0'}
+                      </TableCell>
+                      <TableCell>
+                        {formatPayment(submission.payment_amount)}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
