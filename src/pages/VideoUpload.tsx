@@ -678,16 +678,6 @@ const VideoUpload = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Upload Requirements */}
-          {uploadConfig && (
-            <div className="bg-muted p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Requisitos de Upload:</h3>
-              <ul className="text-sm space-y-1">
-                <li>• Tamanho máximo: {uploadConfig.max_file_size_mb}MB</li>
-                <li>• Formatos aceitos: {uploadConfig.allowed_formats.join(', ')}</li>
-              </ul>
-            </div>
-          )}
 
           {/* Social Media URL Input */}
           <div className="space-y-4">
