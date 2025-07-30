@@ -51,15 +51,15 @@ const Index = () => {
     >
       {/* YouTube Channel Background */}
       <div className="absolute inset-0 w-full h-full">
+        {/* Blurred background */}
         <div 
           className="w-full h-full"
           style={{
             background: `url('/lovable-uploads/212e0abb-aa3f-4645-8b86-5b3dba090171.png') center/cover`,
-            filter: `blur(calc(8px * (1 - radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), 1 50px, 0 150px))))`,
-            maskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), transparent 50px, black 150px)',
-            WebkitMaskImage: 'radial-gradient(circle 150px at var(--mouse-x) var(--mouse-y), transparent 50px, black 150px)',
+            filter: 'blur(8px)',
           }}
         />
+        {/* Unblurred overlay that follows mouse */}
         <div 
           className="absolute inset-0 w-full h-full"
           style={{
