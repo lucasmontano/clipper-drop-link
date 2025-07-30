@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_upload_attempts: {
+        Row: {
+          attempt_count: number
+          attempt_date: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          attempt_date?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number
+          attempt_date?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       upload_configs: {
         Row: {
           allowed_formats: string[]
@@ -82,7 +109,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_and_increment_upload_attempts: {
+        Args: { user_uuid: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
