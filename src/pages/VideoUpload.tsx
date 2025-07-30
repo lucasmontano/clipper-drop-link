@@ -14,6 +14,14 @@ interface UploadConfig {
   allowed_formats: string[];
 }
 
+interface RateLimitResult {
+  allowed: boolean;
+  current_attempts: number;
+  max_attempts: number;
+  remaining_attempts?: number;
+  message?: string;
+}
+
 const VideoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadConfig, setUploadConfig] = useState<UploadConfig | null>(null);
@@ -155,6 +163,25 @@ const VideoUpload = () => {
 
     setIsUploading(true);
     try {
+      // Check rate limit before upload
+      const { data: rateLimitData, error: rateLimitError } = await supabase
+        .rpc('check_and_increment_upload_attempts', { user_uuid: user.id });
+
+      if (rateLimitError) {
+        throw new Error('Erro ao verificar limite de uploads');
+      }
+
+      const rateLimitResult = rateLimitData as unknown as RateLimitResult;
+
+      if (!rateLimitResult.allowed) {
+        toast({
+          title: "Limite excedido",
+          description: rateLimitResult.message || "Limite diário de uploads excedido",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const fileName = `${Date.now()}-${selectedFile.name}`;
       const filePath = `${user.id}/${fileName}`;
 
@@ -169,7 +196,7 @@ const VideoUpload = () => {
 
       toast({
         title: "Upload concluído!",
-        description: "Seu vídeo foi enviado com sucesso.",
+        description: `Seu vídeo foi enviado com sucesso. Você tem ${rateLimitResult.remaining_attempts} uploads restantes hoje.`,
       });
 
       // Reset form
