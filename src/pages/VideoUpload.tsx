@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, Link, Trash2, Download, ExternalLink, Youtube, Instagram, Twitter, Facebook, Linkedin, Globe } from "lucide-react";
+import { Loader2, LogOut, Link, Trash2, Download, ExternalLink, Youtube, Instagram, Twitter, Facebook, Linkedin, Globe, Edit, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,6 +52,8 @@ const VideoUpload = () => {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [views, setViews] = useState<string>('');
   const [clipType, setClipType] = useState<string>('');
+  const [editingSubmission, setEditingSubmission] = useState<string | null>(null);
+  const [editViews, setEditViews] = useState<string>('');
   const [uploadConfig, setUploadConfig] = useState<UploadConfig | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -339,6 +341,61 @@ const VideoUpload = () => {
       return '$1 por mil view ou $5 pelo corte aprovado. Para submeter apenas um corte para aprovação suba o arquivo no Google Drive e compartilhe o link.';
     }
     return '';
+  };
+
+  const startEditViews = (submissionId: string, currentViews: number) => {
+    setEditingSubmission(submissionId);
+    setEditViews(currentViews.toString());
+  };
+
+  const cancelEditViews = () => {
+    setEditingSubmission(null);
+    setEditViews('');
+  };
+
+  const updateViews = async (submissionId: string) => {
+    if (!editViews || isNaN(parseInt(editViews))) {
+      toast({
+        title: "Erro",
+        description: "Digite um número válido de visualizações.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const viewCount = parseInt(editViews);
+      const paymentAmount = calculatePayment(viewCount);
+
+      const { error } = await supabase
+        .from('video_submissions')
+        .update({
+          views: viewCount,
+          payment_amount: paymentAmount
+        } as any)
+        .eq('id', submissionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Views atualizadas",
+        description: `Visualizações atualizadas para ${viewCount.toLocaleString()}.`,
+      });
+
+      // Reset edit state
+      setEditingSubmission(null);
+      setEditViews('');
+
+      // Reload submissions
+      await loadUserSubmissions();
+    } catch (error: any) {
+      console.error('Error updating views:', error);
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar as visualizações.",
+        variant: "destructive",
+      });
+    }
   };
 
   const uploadFromUrl = async () => {
@@ -952,7 +1009,45 @@ const VideoUpload = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {submission.views ? submission.views.toLocaleString() : '0'}
+                        {editingSubmission === submission.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={editViews}
+                              onChange={(e) => setEditViews(e.target.value)}
+                              className="w-20 text-sm"
+                              min="0"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateViews(submission.id)}
+                              className="p-1 h-6 w-6"
+                            >
+                              <Check className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelEditViews}
+                              className="p-1 h-6 w-6"
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span>{submission.views ? submission.views.toLocaleString() : '0'}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => startEditViews(submission.id, submission.views || 0)}
+                              className="p-1 h-6 w-6"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {formatPayment(submission.payment_amount)}
