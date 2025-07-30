@@ -1,1 +1,7 @@
 project_id = "qajnfujinlwashzzatbc"
+
+[functions.send-magic-link]
+verify_jwt = false
+
+[functions.verify-upload]
+verify_jwt = false
