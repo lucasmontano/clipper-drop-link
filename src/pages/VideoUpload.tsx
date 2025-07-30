@@ -186,19 +186,6 @@ const VideoUpload = () => {
         return { isValid: false, message: "URL deve usar protocolo HTTP ou HTTPS" };
       }
 
-      // Check if URL looks like a video file
-      const pathname = urlObj.pathname.toLowerCase();
-      const hasVideoExtension = uploadConfig?.allowed_formats.some(format => 
-        pathname.endsWith(`.${format}`)
-      );
-
-      if (!hasVideoExtension) {
-        return { 
-          isValid: false, 
-          message: `URL deve apontar para um arquivo de vídeo (${uploadConfig?.allowed_formats.join(', ')})` 
-        };
-      }
-
       return { isValid: true, message: "" };
     } catch {
       return { isValid: false, message: "URL inválida" };
