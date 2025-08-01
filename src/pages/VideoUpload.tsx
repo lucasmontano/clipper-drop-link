@@ -881,7 +881,7 @@ const VideoUpload = () => {
                   type="url"
                   value={videoUrl}
                   onChange={handleUrlChange}
-                  placeholder="https://youtube.com/watch?v=... ou outro link de mídia social"
+                  placeholder="Instagram/Reels, TikTok ou YouTube Shorts"
                   className="pl-10"
                 />
                 {videoUrl && (
