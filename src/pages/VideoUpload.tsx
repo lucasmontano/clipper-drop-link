@@ -338,7 +338,7 @@ const VideoUpload = () => {
       return '$1 por mil view + $3 de bonus se marcar o Lucas para que seja repostado (Reels, X).';
     }
     if (clipType === 'lucas_montano') {
-      return '$1 por mil view ou $5 pelo corte aprovado. Para submeter apenas um corte para aprovação suba o arquivo no Google Drive e compartilhe o link.';
+      return '$1 por mil visualizações na sua rede social.';
     }
     return '';
   };
