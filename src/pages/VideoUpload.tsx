@@ -328,7 +328,7 @@ const VideoUpload = () => {
       return 'Faça um Clip sobre o Perssua seguindo um roteiro simples e criativo. Uma ideia para apresentar o software é começar falando de um problema, e comentar que um amigo recomendou o Perssua, nesse momento tu pode gravar o Perssua sendo utilizado e narrar como utilizou.';
     }
     if (clipType === 'lucas_montano') {
-      return 'Faça um Clip de qualquer video publico do canal Lucas Montano. É importante que no clip o Lucas Montano esteja ou "montano" algo ou ensinando algo. As pessoas gostam muito quando ele desenha ou escreve algum código.';
+      return 'Faça um Clip de qualquer video publico do canal Lucas Montano. É importante que no clip o Lucas Montano esteja ou "montano" algo ou ensinando algo. As pessoas gostam muito quando ele desenha ou escreve algum código. Adicione o link do vídeo original na descrição e mencione (Lucas Montano) no título.';
     }
     return '';
   };
