@@ -69,16 +69,55 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Clipper Upload <noreply@clipper.lucasmontano.com>",
       to: [email],
-      subject: "Confirme seu upload de vídeo",
+      subject: "🎬 Seu Magic Link - Clipper",
       html: `
-        <h1>Confirme seu upload de vídeo</h1>
-        <p>Olá! Você solicitou fazer upload do arquivo: <strong>${fileName}</strong></p>
-        <p>Para confirmar e autorizar o upload, clique no link abaixo:</p>
-        <a href="${magicLink}" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-          Confirmar Upload
-        </a>
-        <p>Este link expira em 1 hora.</p>
-        <p>Se você não solicitou este upload, pode ignorar este email.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h1 style="color: #333; text-align: center; margin-bottom: 30px;">🎬 Bem-vindo ao Clipper!</h1>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.6;">Olá!</p>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.6;">
+              Você solicitou fazer upload do arquivo: <strong style="color: #007bff;">${fileName}</strong>
+            </p>
+            
+            <div style="background-color: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff;">
+              <h3 style="color: #007bff; margin-top: 0;">📹 O que é o Clipper?</h3>
+              <p style="color: #555; margin-bottom: 10px;">O Clipper é uma plataforma onde você pode:</p>
+              <ul style="color: #555; margin: 10px 0; padding-left: 20px;">
+                <li>Enviar seus vídeos/clips de forma segura</li>
+                <li>Ganhar dinheiro com as visualizações</li>
+                <li>Acompanhar o desempenho dos seus uploads</li>
+                <li>Receber pagamentos automáticos via PayPal</li>
+              </ul>
+            </div>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.6;">
+              Para confirmar e autorizar o upload do seu clip, clique no botão abaixo:
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${magicLink}" style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,123,255,0.3);">
+                🚀 Confirmar Upload
+              </a>
+            </div>
+            
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffeaa7;">
+              <p style="color: #856404; margin: 0; font-size: 14px;">
+                <strong>⏰ Importante:</strong> Este link expira em 1 hora por segurança.
+              </p>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+              <p style="color: #888; font-size: 14px; text-align: center;">
+                Se você não solicitou este upload, pode ignorar este email com segurança.
+              </p>
+              <p style="color: #888; font-size: 12px; text-align: center; margin-top: 15px;">
+                © 2024 Clipper - Transformando seus vídeos em renda
+              </p>
+            </div>
+          </div>
+        </div>
       `,
     });
 
