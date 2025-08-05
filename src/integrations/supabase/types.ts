@@ -108,6 +108,7 @@ export type Database = {
         Row: {
           allowed_formats: string[]
           created_at: string
+          daily_upload_limit: number
           id: string
           max_file_size_mb: number
           updated_at: string
@@ -115,6 +116,7 @@ export type Database = {
         Insert: {
           allowed_formats?: string[]
           created_at?: string
+          daily_upload_limit?: number
           id?: string
           max_file_size_mb?: number
           updated_at?: string
@@ -122,6 +124,7 @@ export type Database = {
         Update: {
           allowed_formats?: string[]
           created_at?: string
+          daily_upload_limit?: number
           id?: string
           max_file_size_mb?: number
           updated_at?: string
