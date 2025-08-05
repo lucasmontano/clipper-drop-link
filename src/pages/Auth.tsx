@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 
 const Auth = () => {
@@ -159,6 +159,16 @@ const Auth = () => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Terms of Service Link */}
+      <div className="mt-6 text-center">
+        <Link 
+          to="/terms" 
+          className="text-muted-foreground hover:text-foreground text-sm underline transition-colors"
+        >
+          Termos de Serviço
+        </Link>
+      </div>
     </div>
   );
 };

@@ -92,18 +92,6 @@ const Index = () => {
             Iniciar Clipagem
           </Button>
         </div>
-        
-        {/* Footer */}
-        <div className="absolute bottom-6 left-0 right-0 z-10">
-          <div className="text-center">
-            <Link 
-              to="/terms" 
-              className="text-white/70 hover:text-white text-sm underline transition-colors"
-            >
-              Termos de Serviço
-            </Link>
-          </div>
-        </div>
       </div>
     </div>;
 };
