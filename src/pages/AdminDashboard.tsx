@@ -39,6 +39,8 @@ interface PaymentSummary {
   pendingPayment: number;
   submissionCount: number;
   submissionIds: string[];
+  pendingSubmissionIds: string[];
+  pendingViews: number;
 }
 
 interface Payment {
@@ -48,6 +50,7 @@ interface Payment {
   payment_amount: number;
   payment_date: string;
   status: string;
+  submission_ids: string[];
 }
 
 const AdminDashboard = () => {
@@ -154,12 +157,19 @@ const AdminDashboard = () => {
   const calculatePaymentSummaries = (submissions: VideoSubmission[], payments: Payment[]) => {
     const summaryMap = new Map<string, PaymentSummary>();
     
+    // Get all submission IDs that have already been paid
+    const paidSubmissionIds = new Set<string>();
+    payments.forEach(payment => {
+      payment.submission_ids.forEach(id => paidSubmissionIds.add(id));
+    });
+    
     submissions.forEach(submission => {
       if (!submission.user_email) return;
       
       const email = submission.user_email;
       const views = submission.views || 0;
       const payment = submission.payment_amount || 0;
+      const isPaid = paidSubmissionIds.has(submission.id);
       
       if (summaryMap.has(email)) {
         const existing = summaryMap.get(email)!;
@@ -167,32 +177,26 @@ const AdminDashboard = () => {
           email,
           totalViews: existing.totalViews + views,
           totalPayment: existing.totalPayment + payment,
-          paidAmount: existing.paidAmount,
-          pendingPayment: existing.pendingPayment,
+          paidAmount: existing.paidAmount + (isPaid ? payment : 0),
+          pendingPayment: existing.pendingPayment + (isPaid ? 0 : payment),
           submissionCount: existing.submissionCount + 1,
-          submissionIds: [...existing.submissionIds, submission.id]
+          submissionIds: [...existing.submissionIds, submission.id],
+          pendingSubmissionIds: isPaid 
+            ? existing.pendingSubmissionIds 
+            : [...existing.pendingSubmissionIds, submission.id],
+          pendingViews: existing.pendingViews + (isPaid ? 0 : views)
         });
       } else {
         summaryMap.set(email, {
           email,
           totalViews: views,
           totalPayment: payment,
-          paidAmount: 0,
-          pendingPayment: payment,
+          paidAmount: isPaid ? payment : 0,
+          pendingPayment: isPaid ? 0 : payment,
           submissionCount: 1,
-          submissionIds: [submission.id]
-        });
-      }
-    });
-
-    // Calculate paid amounts
-    payments.forEach(payment => {
-      if (summaryMap.has(payment.user_email)) {
-        const existing = summaryMap.get(payment.user_email)!;
-        summaryMap.set(payment.user_email, {
-          ...existing,
-          paidAmount: existing.paidAmount + payment.payment_amount,
-          pendingPayment: existing.totalPayment - (existing.paidAmount + payment.payment_amount)
+          submissionIds: [submission.id],
+          pendingSubmissionIds: isPaid ? [] : [submission.id],
+          pendingViews: isPaid ? 0 : views
         });
       }
     });
@@ -219,9 +223,9 @@ const AdminDashboard = () => {
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           userEmail: summary.email,
-          totalViews: summary.totalViews,
+          totalViews: summary.pendingViews,
           paymentAmount: summary.pendingPayment,
-          submissionIds: summary.submissionIds
+          submissionIds: summary.pendingSubmissionIds
         }
       });
 
