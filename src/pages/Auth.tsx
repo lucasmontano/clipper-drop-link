@@ -134,6 +134,16 @@ const Auth = () => {
               >
                 {isLoading ? "Sending..." : "Send Magic Link"}
               </Button>
+              
+              {/* Terms of Service Link */}
+              <div className="pt-4 border-t border-border">
+                <Link 
+                  to="/terms" 
+                  className="text-muted-foreground hover:text-foreground text-sm underline transition-colors"
+                >
+                  Termos de Serviço
+                </Link>
+              </div>
             </form>
           ) : (
             <div className="text-center space-y-4">
@@ -155,20 +165,20 @@ const Auth = () => {
               >
                 Send to Different Email
               </Button>
+              
+              {/* Terms of Service Link */}
+              <div className="pt-4 border-t border-border text-center">
+                <Link 
+                  to="/terms" 
+                  className="text-muted-foreground hover:text-foreground text-sm underline transition-colors"
+                >
+                  Termos de Serviço
+                </Link>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
-      
-      {/* Terms of Service Link */}
-      <div className="mt-6 text-center">
-        <Link 
-          to="/terms" 
-          className="text-muted-foreground hover:text-foreground text-sm underline transition-colors"
-        >
-          Termos de Serviço
-        </Link>
-      </div>
     </div>
   );
 };
