@@ -9,6 +9,7 @@ import UploadSuccess from "./pages/UploadSuccess";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import PaymentHistory from "./pages/PaymentHistory";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/upload-success" element={<UploadSuccess />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/payments" element={<PaymentHistory />} />
+          <Route path="/terms" element={<TermsOfService />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
