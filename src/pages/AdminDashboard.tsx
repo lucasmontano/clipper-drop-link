@@ -157,15 +157,33 @@ const AdminDashboard = () => {
   const calculatePaymentSummaries = (submissions: VideoSubmission[], payments: Payment[]) => {
     const summaryMap = new Map<string, PaymentSummary>();
     
-    // Calculate how many views have been paid for each submission across all payments
+    // Calculate how many views have been paid for each submission
     const paidViewsPerSubmission = new Map<string, number>();
+    
     payments.forEach(payment => {
-      payment.submission_ids.forEach(submissionId => {
-        const currentPaidViews = paidViewsPerSubmission.get(submissionId) || 0;
-        // Divide the payment's total views equally among all submissions in that payment
-        const viewsPerSubmission = payment.total_views / payment.submission_ids.length;
-        paidViewsPerSubmission.set(submissionId, currentPaidViews + viewsPerSubmission);
-      });
+      // Calculate the sum of current views for all submissions in this payment
+      const submissionsInPayment = payment.submission_ids
+        .map(id => submissions.find(s => s.id === id))
+        .filter(Boolean) as VideoSubmission[];
+      
+      const totalCurrentViews = submissionsInPayment.reduce((sum, sub) => sum + (sub.views || 0), 0);
+      
+      // If payment total views matches current views total, mark all as fully paid
+      // Otherwise, distribute proportionally
+      if (totalCurrentViews === payment.total_views) {
+        // Payment covers all current views for these submissions
+        submissionsInPayment.forEach(submission => {
+          const currentPaidViews = paidViewsPerSubmission.get(submission.id) || 0;
+          paidViewsPerSubmission.set(submission.id, currentPaidViews + (submission.views || 0));
+        });
+      } else {
+        // Distribute payment views proportionally
+        submissionsInPayment.forEach(submission => {
+          const currentPaidViews = paidViewsPerSubmission.get(submission.id) || 0;
+          const proportionalViews = (submission.views || 0) * (payment.total_views / totalCurrentViews);
+          paidViewsPerSubmission.set(submission.id, currentPaidViews + proportionalViews);
+        });
+      }
     });
     
     submissions.forEach(submission => {
