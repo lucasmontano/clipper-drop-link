@@ -157,46 +157,56 @@ const AdminDashboard = () => {
   const calculatePaymentSummaries = (submissions: VideoSubmission[], payments: Payment[]) => {
     const summaryMap = new Map<string, PaymentSummary>();
     
-    // Get all submission IDs that have already been paid
-    const paidSubmissionIds = new Set<string>();
+    // Calculate how many views have been paid for each submission across all payments
+    const paidViewsPerSubmission = new Map<string, number>();
     payments.forEach(payment => {
-      payment.submission_ids.forEach(id => paidSubmissionIds.add(id));
+      payment.submission_ids.forEach(submissionId => {
+        const currentPaidViews = paidViewsPerSubmission.get(submissionId) || 0;
+        // Divide the payment's total views equally among all submissions in that payment
+        const viewsPerSubmission = payment.total_views / payment.submission_ids.length;
+        paidViewsPerSubmission.set(submissionId, currentPaidViews + viewsPerSubmission);
+      });
     });
     
     submissions.forEach(submission => {
       if (!submission.user_email) return;
       
       const email = submission.user_email;
-      const views = submission.views || 0;
-      const payment = submission.payment_amount || 0;
-      const isPaid = paidSubmissionIds.has(submission.id);
+      const currentViews = submission.views || 0;
+      const paidViews = paidViewsPerSubmission.get(submission.id) || 0;
+      const pendingViews = Math.max(0, currentViews - paidViews);
+      const ratePerView = submission.views ? (submission.payment_amount || 0) / submission.views : 0;
+      const pendingPayment = pendingViews * ratePerView;
+      const paidPayment = paidViews * ratePerView;
       
       if (summaryMap.has(email)) {
         const existing = summaryMap.get(email)!;
+        const updatedPendingSubmissionIds = pendingViews > 0 
+          ? [...existing.pendingSubmissionIds, submission.id]
+          : existing.pendingSubmissionIds;
+        
         summaryMap.set(email, {
           email,
-          totalViews: existing.totalViews + views,
-          totalPayment: existing.totalPayment + payment,
-          paidAmount: existing.paidAmount + (isPaid ? payment : 0),
-          pendingPayment: existing.pendingPayment + (isPaid ? 0 : payment),
+          totalViews: existing.totalViews + currentViews,
+          totalPayment: existing.totalPayment + (submission.payment_amount || 0),
+          paidAmount: existing.paidAmount + paidPayment,
+          pendingPayment: existing.pendingPayment + pendingPayment,
           submissionCount: existing.submissionCount + 1,
           submissionIds: [...existing.submissionIds, submission.id],
-          pendingSubmissionIds: isPaid 
-            ? existing.pendingSubmissionIds 
-            : [...existing.pendingSubmissionIds, submission.id],
-          pendingViews: existing.pendingViews + (isPaid ? 0 : views)
+          pendingSubmissionIds: updatedPendingSubmissionIds,
+          pendingViews: existing.pendingViews + pendingViews
         });
       } else {
         summaryMap.set(email, {
           email,
-          totalViews: views,
-          totalPayment: payment,
-          paidAmount: isPaid ? payment : 0,
-          pendingPayment: isPaid ? 0 : payment,
+          totalViews: currentViews,
+          totalPayment: submission.payment_amount || 0,
+          paidAmount: paidPayment,
+          pendingPayment: pendingPayment,
           submissionCount: 1,
           submissionIds: [submission.id],
-          pendingSubmissionIds: isPaid ? [] : [submission.id],
-          pendingViews: isPaid ? 0 : views
+          pendingSubmissionIds: pendingViews > 0 ? [submission.id] : [],
+          pendingViews: pendingViews
         });
       }
     });
