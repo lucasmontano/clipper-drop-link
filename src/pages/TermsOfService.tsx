@@ -55,11 +55,11 @@ const TermsOfService = () => {
                 <ul className="space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-destructive font-bold">•</span>
-                    <span><strong>Limite de Pagamento:</strong> O valor máximo por submissão de vídeo é de <strong>$100 USD</strong>.</span>
+                    <span><strong>Limite de Pagamento:</strong> O valor máximo por submissão de vídeo é de <strong>$10 USD</strong>.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-destructive font-bold">•</span>
-                    <span><strong>Direito de Investigação:</strong> Reservamo-nos o direito de investigar e negar pagamentos para valores acima de $100 por submissão.</span>
+                    <span><strong>Direito de Investigação:</strong> Reservamo-nos o direito de investigar e negar pagamentos para valores acima de $10 por submissão.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-destructive font-bold">•</span>
