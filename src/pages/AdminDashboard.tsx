@@ -341,8 +341,11 @@ const AdminDashboard = () => {
     try {
       setDeletingSubmission(submissionId);
       
+      console.log('Attempting to delete submission:', submissionId);
+      
       // Get submission details for cleanup
       const submission = submissions.find(s => s.id === submissionId);
+      console.log('Found submission:', submission);
       
       // Delete from database
       const { error } = await supabase
@@ -350,6 +353,8 @@ const AdminDashboard = () => {
         .delete()
         .eq('id', submissionId);
 
+      console.log('Delete result:', { error });
+      
       if (error) throw error;
 
       // If it's a file upload, also delete from storage
