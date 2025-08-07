@@ -4,7 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon } from "lucide-react";
+import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 import {
@@ -62,6 +73,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
+  const [deletingSubmission, setDeletingSubmission] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -322,6 +334,51 @@ const AdminDashboard = () => {
         description: "Erro ao fazer logout.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleDeleteSubmission = async (submissionId: string) => {
+    try {
+      setDeletingSubmission(submissionId);
+      
+      // Get submission details for cleanup
+      const submission = submissions.find(s => s.id === submissionId);
+      
+      // Delete from database
+      const { error } = await supabase
+        .from('video_submissions')
+        .delete()
+        .eq('id', submissionId);
+
+      if (error) throw error;
+
+      // If it's a file upload, also delete from storage
+      if (submission?.submission_type === 'file_upload' && submission.file_path) {
+        const { error: storageError } = await supabase.storage
+          .from('video-uploads')
+          .remove([submission.file_path]);
+        
+        if (storageError) {
+          console.warn('Failed to delete file from storage:', storageError);
+        }
+      }
+
+      toast({
+        title: "Submissão deletada",
+        description: "A submissão foi removida com sucesso.",
+      });
+
+      // Reload data
+      loadSubmissions();
+    } catch (error: any) {
+      console.error('Error deleting submission:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível deletar a submissão.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingSubmission(null);
     }
   };
 
@@ -708,22 +765,55 @@ const AdminDashboard = () => {
                               {formatPayment(submission.payment_amount || 0)}
                             </span>
                           </TableCell>
-                          <TableCell>
-                            {submission.submission_type === 'file_upload' && submission.file_path && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => downloadFile(
-                                  submission.file_path!,
-                                  submission.original_filename || 'video'
-                                )}
-                                className="gap-1"
-                              >
-                                <Download className="w-3 h-3" />
-                                Download
-                              </Button>
-                            )}
-                          </TableCell>
+                           <TableCell>
+                             <div className="flex gap-2">
+                               {submission.submission_type === 'file_upload' && submission.file_path && (
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   onClick={() => downloadFile(
+                                     submission.file_path!,
+                                     submission.original_filename || 'video'
+                                   )}
+                                   className="gap-1"
+                                 >
+                                   <Download className="w-3 h-3" />
+                                   Download
+                                 </Button>
+                               )}
+                               <AlertDialog>
+                                 <AlertDialogTrigger asChild>
+                                   <Button
+                                     size="sm"
+                                     variant="destructive"
+                                     className="gap-1"
+                                     disabled={deletingSubmission === submission.id}
+                                   >
+                                     <Trash2 className="w-3 h-3" />
+                                     {deletingSubmission === submission.id ? 'Deletando...' : 'Deletar'}
+                                   </Button>
+                                 </AlertDialogTrigger>
+                                 <AlertDialogContent>
+                                   <AlertDialogHeader>
+                                     <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                     <AlertDialogDescription>
+                                       Tem certeza que deseja deletar esta submissão? Esta ação não pode ser desfeita.
+                                       {submission.submission_type === 'file_upload' && ' O arquivo também será removido do armazenamento.'}
+                                     </AlertDialogDescription>
+                                   </AlertDialogHeader>
+                                   <AlertDialogFooter>
+                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                     <AlertDialogAction
+                                       onClick={() => handleDeleteSubmission(submission.id)}
+                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                     >
+                                       Deletar
+                                     </AlertDialogAction>
+                                   </AlertDialogFooter>
+                                 </AlertDialogContent>
+                               </AlertDialog>
+                             </div>
+                           </TableCell>
                         </TableRow>
                       ))
                     )}
