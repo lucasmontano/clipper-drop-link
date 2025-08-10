@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2 } from "lucide-react";
+import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2, Eye } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,6 +90,12 @@ const AdminDashboard = () => {
       .filter(([, arr]) => arr.length > 1)
       .map(([link, items]) => ({ link, items }));
   }, [submissions]);
+
+  const linkSubmissions = useMemo(() => (
+    submissions
+      .filter((s) => (s.video_url || '').trim())
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  ), [submissions]);
 
   useEffect(() => {
     // Set up auth state listener
@@ -452,6 +458,53 @@ const AdminDashboard = () => {
     return 'N/A';
   };
 
+  const getYouTubeId = (url: string): string | null => {
+    try {
+      const patterns = [
+        /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+      ];
+      for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+      }
+      const u = new URL(url);
+      const v = u.searchParams.get('v');
+      return v || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const isDirectVideo = (url: string) => /\.(mp4|webm|mov|mkv|avi)$/i.test(url);
+
+  const getEmbedForUrl = (url: string) => {
+    const yt = getYouTubeId(url);
+    if (yt) {
+      return (
+        <iframe
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.youtube.com/embed/${yt}`}
+          title="YouTube preview"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      );
+    }
+    if (isDirectVideo(url)) {
+      return (
+        <video className="absolute inset-0 w-full h-full object-cover" src={url} controls preload="metadata" />
+      );
+    }
+    return (
+      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm px-4 text-center">
+        Prévia indisponível
+      </div>
+    );
+  };
+
   if (!user || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -610,6 +663,46 @@ const AdminDashboard = () => {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Galeria de Links */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Galeria de Links</CardTitle>
+              <CardDescription>Pré-visualização dos links enviados e seus views</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {linkSubmissions.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground border rounded-md">
+                  Nenhum link enviado até o momento.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {linkSubmissions.map((s) => (
+                    <div key={s.id} className="rounded-md border overflow-hidden bg-card">
+                      <div className="relative pb-[56.25%] bg-muted">
+                        {getEmbedForUrl(s.video_url!)}
+                      </div>
+                      <div className="p-3 flex items-center justify-between gap-2">
+                        <a
+                          href={s.video_url!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline truncate max-w-[75%] flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          {s.video_url}
+                        </a>
+                        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                          <Eye className="w-4 h-4" />
+                          {s.views ? s.views.toLocaleString() : 0}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
