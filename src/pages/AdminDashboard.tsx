@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +76,20 @@ const AdminDashboard = () => {
   const [deletingSubmission, setDeletingSubmission] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const duplicateGroups = useMemo(() => {
+    const map = new Map<string, VideoSubmission[]>();
+    for (const s of submissions) {
+      const link = s.video_url?.trim();
+      if (!link) continue;
+      const arr = map.get(link) || [];
+      arr.push(s);
+      map.set(link, arr);
+    }
+    return Array.from(map.entries())
+      .filter(([, arr]) => arr.length > 1)
+      .map(([link, items]) => ({ link, items }));
+  }, [submissions]);
 
   useEffect(() => {
     // Set up auth state listener
@@ -540,6 +554,66 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Links Duplicados */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Links Duplicados</CardTitle>
+              <CardDescription>
+                Verifique envios com a mesma URL de vídeo. Não permitimos links duplicados.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {duplicateGroups.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground border rounded-md">
+                  Tudo certo! Nenhum link duplicado encontrado agora.
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Link</TableHead>
+                        <TableHead>Duplicatas</TableHead>
+                        <TableHead>Submissões</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {duplicateGroups.map((group) => (
+                        <TableRow key={group.link}>
+                          <TableCell className="max-w-[340px] align-top">
+                            <a
+                              href={group.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline break-all flex items-center gap-2"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              {group.link}
+                            </a>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <Badge variant="outline">{group.items.length}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <ul className="space-y-1">
+                              {group.items.map((item) => (
+                                <li key={item.id} className="text-sm text-muted-foreground">
+                                  <span className="font-medium">{item.user_email || 'N/A'}</span>
+                                  {" • "}{formatDate(item.created_at)}
+                                  {" • ID "}{item.id.slice(0,8)}
+                                </li>
+                              ))}
+                            </ul>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Payment Summary by Email */}
           <Card>
