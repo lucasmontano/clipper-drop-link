@@ -626,12 +626,12 @@ const AdminDashboard = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Uploads de Arquivo</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total de Views</p>
                     <p className="text-2xl font-bold">
-                      {submissions.filter(s => s.submission_type === 'file_upload').length}
+                      {submissions.reduce((sum, s) => sum + (s.views || 0), 0)}
                     </p>
                   </div>
-                  <Download className="w-8 h-8 text-muted-foreground" />
+                  <Eye className="w-8 h-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
