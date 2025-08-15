@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2, Eye } from "lucide-react";
+import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2, Eye, RefreshCw } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,15 +68,61 @@ interface Payment {
 const AdminDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [submissions, setSubmissions] = useState<VideoSubmission[]>([]);
   const [paymentSummaries, setPaymentSummaries] = useState<PaymentSummary[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [deletingSubmission, setDeletingSubmission] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Fetch admin data with React Query
+  const { data: adminData, isLoading: dataLoading, refetch } = useQuery({
+    queryKey: ['admin-data'],
+    queryFn: async () => {
+      // Load submissions
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .from('video_submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (submissionsError) throw submissionsError;
+      
+      const submissions = (submissionsData || []).map(submission => ({
+        ...submission,
+        views: (submission as any).views || 0,
+        payment_amount: (submission as any).payment_amount || 0,
+        clip_type: (submission as any).clip_type || null
+      }));
+      
+      // Load payments
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('payments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (paymentsError) throw paymentsError;
+      
+      return {
+        submissions,
+        payments: paymentsData || []
+      };
+    },
+    enabled: isAdmin,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const submissions = adminData?.submissions || [];
+  const payments = adminData?.payments || [];
+
+  // Calculate payment summaries when data changes
+  useEffect(() => {
+    if (submissions.length > 0 || payments.length > 0) {
+      calculatePaymentSummaries(submissions, payments);
+    }
+  }, [submissions, payments]);
 
   const duplicateGroups = useMemo(() => {
     const map = new Map<string, VideoSubmission[]>();
@@ -131,7 +178,6 @@ const AdminDashboard = () => {
     const adminEmail = "comercial@lucasmontano.com";
     if (user.email === adminEmail) {
       setIsAdmin(true);
-      loadSubmissions();
     } else {
       setIsAdmin(false);
       setLoading(false);
@@ -142,48 +188,7 @@ const AdminDashboard = () => {
       });
       navigate('/upload');
     }
-  };
-
-  const loadSubmissions = async () => {
-    try {
-      setLoading(true);
-      
-      // Load submissions
-      const { data, error } = await supabase
-        .from('video_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const submissionsData = (data || []).map(submission => ({
-        ...submission,
-        views: (submission as any).views || 0,
-        payment_amount: (submission as any).payment_amount || 0,
-        clip_type: (submission as any).clip_type || null
-      }));
-      
-      // Load payments
-      const { data: paymentsData, error: paymentsError } = await supabase
-        .from('payments')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (paymentsError) throw paymentsError;
-      
-      setSubmissions(submissionsData);
-      setPayments(paymentsData || []);
-      calculatePaymentSummaries(submissionsData, paymentsData || []);
-    } catch (error: any) {
-      console.error('Error loading submissions:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as submissões.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   const calculatePaymentSummaries = (submissions: VideoSubmission[], payments: Payment[]) => {
@@ -297,7 +302,7 @@ const AdminDashboard = () => {
       });
 
       // Reload data
-      loadSubmissions();
+      refetch();
     } catch (error: any) {
       console.error('Error creating payment:', error);
       toast({
@@ -325,7 +330,7 @@ const AdminDashboard = () => {
       });
 
       // Reload data
-      loadSubmissions();
+      refetch();
     } catch (error: any) {
       console.error('Error updating payment status:', error);
       toast({
@@ -394,7 +399,7 @@ const AdminDashboard = () => {
       });
 
       // Reload data
-      loadSubmissions();
+      refetch();
     } catch (error: any) {
       console.error('Error deleting submission:', error);
       toast({
@@ -505,7 +510,7 @@ const AdminDashboard = () => {
     );
   };
 
-  if (!user || loading) {
+  if (!user || loading || (isAdmin && dataLoading && !adminData)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -545,6 +550,16 @@ const AdminDashboard = () => {
               </CardDescription>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                disabled={dataLoading}
+                className="gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`} />
+                {dataLoading ? 'Atualizando...' : 'Atualizar'}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
