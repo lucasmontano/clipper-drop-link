@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2, Eye, RefreshCw } from "lucide-react";
+import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2, Eye, RefreshCw, Check, X, Clock } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +40,7 @@ interface VideoSubmission {
   views: number | null;
   payment_amount: number | null;
   clip_type: string | null;
+  approval_status?: string;
   created_at: string;
 }
 
@@ -84,7 +85,7 @@ const AdminDashboard = () => {
       // Load submissions
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('video_submissions')
-        .select('*')
+        .select('*, approval_status')
         .order('created_at', { ascending: false });
 
       if (submissionsError) throw submissionsError;
@@ -485,6 +486,32 @@ const AdminDashboard = () => {
 
   const isDirectVideo = (url: string) => /\.(mp4|webm|mov|mkv|avi)$/i.test(url);
 
+  const toggleApprovalStatus = async (submissionId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
+    
+    const { error } = await supabase
+      .from('video_submissions')
+      .update({ approval_status: newStatus })
+      .eq('id', submissionId);
+    
+    if (error) {
+      console.error('Error updating approval status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status de aprovação.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Status atualizado",
+      description: `Submissão ${newStatus === 'approved' ? 'aprovada' : 'marcada como pendente'}.`,
+    });
+    
+    refetch();
+  };
+
   const getEmbedForUrl = (url: string) => {
     const yt = getYouTubeId(url);
     if (yt) {
@@ -701,20 +728,44 @@ const AdminDashboard = () => {
                       <div className="relative pb-[56.25%] bg-muted">
                         {getEmbedForUrl(s.video_url!)}
                       </div>
-                      <div className="p-3 flex items-center justify-between gap-2">
-                        <a
-                          href={s.video_url!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline truncate max-w-[75%] flex items-center gap-1"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          {s.video_url}
-                        </a>
-                        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <Eye className="w-4 h-4" />
-                          {s.views ? s.views.toLocaleString() : 0}
-                        </span>
+                      <div className="p-3">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <a
+                            href={s.video_url!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline truncate max-w-[75%] flex items-center gap-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            {s.video_url}
+                          </a>
+                          <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                            <Eye className="w-4 h-4" />
+                            {s.views ? s.views.toLocaleString() : 0}
+                          </span>
+                        </div>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => toggleApprovalStatus(s.id, s.approval_status || 'pending')}
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                              s.approval_status === 'approved'
+                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            {s.approval_status === 'approved' ? (
+                              <>
+                                <Check className="h-3 w-3" />
+                                Approved
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="h-3 w-3" />
+                                Pending
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -896,13 +947,14 @@ const AdminDashboard = () => {
                       <TableHead>Arquivo/URL</TableHead>
                       <TableHead>Views</TableHead>
                       <TableHead>Pagamento</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {submissions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground">
+                        <TableCell colSpan={9} className="text-center text-muted-foreground">
                           Nenhuma submissão encontrada
                         </TableCell>
                       </TableRow>
@@ -951,6 +1003,28 @@ const AdminDashboard = () => {
                             <span className="font-semibold text-green-600">
                               {formatPayment(submission.payment_amount || 0)}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            <button
+                              onClick={() => toggleApprovalStatus(submission.id, submission.approval_status || 'pending')}
+                              className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                submission.approval_status === 'approved'
+                                  ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              {submission.approval_status === 'approved' ? (
+                                <>
+                                  <Check className="h-3 w-3" />
+                                  Approved
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="h-3 w-3" />
+                                  Pending
+                                </>
+                              )}
+                            </button>
                           </TableCell>
                            <TableCell>
                              <div className="flex gap-2">

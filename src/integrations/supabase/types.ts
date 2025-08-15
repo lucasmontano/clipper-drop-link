@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -172,6 +172,7 @@ export type Database = {
       }
       video_submissions: {
         Row: {
+          approval_status: string
           clip_type: string | null
           created_at: string
           file_path: string | null
@@ -187,6 +188,7 @@ export type Database = {
           views: number | null
         }
         Insert: {
+          approval_status?: string
           clip_type?: string | null
           created_at?: string
           file_path?: string | null
@@ -202,6 +204,7 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          approval_status?: string
           clip_type?: string | null
           created_at?: string
           file_path?: string | null
