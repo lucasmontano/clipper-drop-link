@@ -92,11 +92,22 @@ const TermsOfService = () => {
 
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-primary">5. Propriedade Intelectual</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Você mantém todos os direitos sobre o conteúdo que envia. No entanto, ao usar nosso serviço, 
-                você nos concede uma licença limitada para hospedar, exibir e distribuir seu conteúdo 
-                conforme necessário para operar a plataforma.
-              </p>
+              <div className="space-y-4 text-muted-foreground leading-relaxed">
+                <p>
+                  Você mantém todos os direitos sobre o conteúdo que envia. No entanto, ao usar nosso serviço, 
+                  você nos concede uma licença limitada para hospedar, exibir e distribuir seu conteúdo 
+                  conforme necessário para operar a plataforma.
+                </p>
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-2 text-primary">Direitos de Repostagem</h3>
+                  <p>
+                    Ao enviar conteúdo para o Clipper, você concede expressamente a <strong>Lucas Montano</strong> 
+                    o direito de repostar, compartilhar e promover seus vídeos em suas redes sociais 
+                    (incluindo mas não limitado a Instagram, TikTok, YouTube, Twitter/X e outras plataformas). 
+                    Esta autorização é necessária para a promoção da plataforma e de seu conteúdo.
+                  </p>
+                </div>
+              </div>
             </section>
 
             <section>
