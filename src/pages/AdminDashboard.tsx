@@ -484,6 +484,23 @@ const AdminDashboard = () => {
     }
   };
 
+  const getTikTokId = (url: string): string | null => {
+    try {
+      const patterns = [
+        /tiktok\.com\/.*\/video\/(\d+)/,
+        /tiktok\.com\/@[^\/]+\/video\/(\d+)/,
+        /vm\.tiktok\.com\/([a-zA-Z0-9]+)/,
+      ];
+      for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   const isDirectVideo = (url: string) => /\.(mp4|webm|mov|mkv|avi)$/i.test(url);
 
   const toggleApprovalStatus = async (submissionId: string, currentStatus: string) => {
@@ -525,6 +542,20 @@ const AdminDashboard = () => {
         />
       );
     }
+    
+    const tiktok = getTikTokId(url);
+    if (tiktok) {
+      return (
+        <iframe
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.tiktok.com/embed/v2/${tiktok}`}
+          title="TikTok preview"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      );
+    }
+    
     if (isDirectVideo(url)) {
       return (
         <video className="absolute inset-0 w-full h-full object-cover" src={url} controls preload="metadata" />
