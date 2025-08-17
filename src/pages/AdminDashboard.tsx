@@ -775,7 +775,7 @@ const AdminDashboard = () => {
                             {s.views ? s.views.toLocaleString() : 0}
                           </span>
                         </div>
-                        <div className="flex justify-end">
+                        <div className="flex justify-between items-center">
                           <button
                             onClick={() => toggleApprovalStatus(s.id, s.approval_status || 'pending')}
                             className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
@@ -796,6 +796,37 @@ const AdminDashboard = () => {
                               </>
                             )}
                           </button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="gap-1 h-7"
+                                disabled={deletingSubmission === s.id}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                {deletingSubmission === s.id ? 'Deletando...' : 'Deletar'}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja deletar esta submissão? Esta ação não pode ser desfeita.
+                                  {s.submission_type === 'file_upload' && ' O arquivo também será removido do armazenamento.'}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteSubmission(s.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Deletar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
