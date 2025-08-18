@@ -866,6 +866,145 @@ const VideoUpload = () => {
                   <h4 className="font-medium text-green-900 mb-1">Pagamento:</h4>
                   <p className="text-sm text-green-800">{getPaymentInfo(clipType)}</p>
                 </div>
+
+                {/* Assets Section for Perssua */}
+                {clipType === 'perssua' && (
+                  <div className="mt-6 bg-white border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-900 mb-3">Assets para Clippers</h4>
+                    <p className="text-sm text-blue-800 mb-4">
+                      Use estes recursos para criar clips profissionais do Perssua:
+                    </p>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {/* Perssua Logo */}
+                      <div className="bg-gray-50 p-3 rounded-lg border">
+                        <img 
+                          src="/lovable-uploads/88a35bb9-aa57-4e3d-b944-40f6e598d38c.png" 
+                          alt="Perssua Logo" 
+                          className="w-full h-12 object-contain mb-2"
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Logo Perssua</p>
+                          <a 
+                            href="/lovable-uploads/88a35bb9-aa57-4e3d-b944-40f6e598d38c.png" 
+                            download="perssua-logo.png"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Recording Interface 1 */}
+                      <div className="bg-gray-50 p-3 rounded-lg border">
+                        <img 
+                          src="/lovable-uploads/fc3568b6-9b94-4ddc-beb2-661f203ad9fd.png" 
+                          alt="Recording Interface" 
+                          className="w-full h-12 object-contain mb-2"
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Interface de Gravação</p>
+                          <a 
+                            href="/lovable-uploads/fc3568b6-9b94-4ddc-beb2-661f203ad9fd.png" 
+                            download="recording-interface-1.png"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Recording Interface 2 */}
+                      <div className="bg-gray-50 p-3 rounded-lg border">
+                        <img 
+                          src="/lovable-uploads/f5569895-f9cc-4003-9a02-38f25b9f2347.png" 
+                          alt="Recording Interface 2" 
+                          className="w-full h-12 object-contain mb-2"
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Interface Desktop</p>
+                          <a 
+                            href="/lovable-uploads/f5569895-f9cc-4003-9a02-38f25b9f2347.png" 
+                            download="recording-interface-2.png"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Controls Interface */}
+                      <div className="bg-gray-50 p-3 rounded-lg border">
+                        <img 
+                          src="/lovable-uploads/205fb8eb-b8e2-4ba0-8bdf-1d3cce4f8dd9.png" 
+                          alt="Controls Interface" 
+                          className="w-full h-12 object-contain mb-2"
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Controles</p>
+                          <a 
+                            href="/lovable-uploads/205fb8eb-b8e2-4ba0-8bdf-1d3cce4f8dd9.png" 
+                            download="controls-interface.png"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Recording Bar */}
+                      <div className="bg-gray-50 p-3 rounded-lg border">
+                        <img 
+                          src="/lovable-uploads/56faf8d1-7354-4e4d-be12-7b80497c0f1b.png" 
+                          alt="Recording Bar" 
+                          className="w-full h-12 object-contain mb-2"
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Barra de Gravação</p>
+                          <a 
+                            href="/lovable-uploads/56faf8d1-7354-4e4d-be12-7b80497c0f1b.png" 
+                            download="recording-bar.png"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Integrations */}
+                      <div className="bg-gray-50 p-3 rounded-lg border">
+                        <img 
+                          src="/lovable-uploads/7e229fd9-bf1c-4f14-88e2-137406dfcfa8.png" 
+                          alt="Platform Integrations" 
+                          className="w-full h-12 object-contain mb-2"
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Integrações</p>
+                          <a 
+                            href="/lovable-uploads/7e229fd9-bf1c-4f14-88e2-137406dfcfa8.png" 
+                            download="platform-integrations.png"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                      <p className="text-xs text-blue-800">
+                        💡 <strong>Dica:</strong> Use estes assets para mostrar como o Perssua funciona em seus clips. 
+                        Demonstre a facilidade de uso e as integrações com plataformas populares.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
