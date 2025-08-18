@@ -335,7 +335,7 @@ const VideoUpload = () => {
 
   const getPaymentInfo = (clipType: string): string => {
     if (clipType === 'perssua') {
-      return '$1 por mil view + $3 de bonus se marcar o Lucas para que seja repostado (Reels, X).';
+      return '$2 por mil views';
     }
     if (clipType === 'lucas_montano') {
       return '$1 por mil visualizações na sua rede social.';
