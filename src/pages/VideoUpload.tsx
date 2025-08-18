@@ -308,8 +308,9 @@ const VideoUpload = () => {
     setViews(e.target.value);
   };
 
-  const calculatePayment = (viewCount: number): number => {
-    return Math.round((viewCount / 1000) * 100) / 100; // $1 per 1000 views, rounded to 2 decimals
+  const calculatePayment = (viewCount: number, clipType?: string): number => {
+    const ratePerThousand = clipType === 'perssua' ? 2 : 1; // $2 per 1000 views for Perssua, $1 for others
+    return Math.round((viewCount / 1000) * ratePerThousand * 100) / 100; // rounded to 2 decimals
   };
 
   const formatPayment = (amount: number | null): string => {
@@ -365,7 +366,7 @@ const VideoUpload = () => {
 
     try {
       const viewCount = parseInt(editViews);
-      const paymentAmount = calculatePayment(viewCount);
+      const paymentAmount = calculatePayment(viewCount, clipType);
 
       const { error } = await supabase
         .from('video_submissions')
@@ -466,7 +467,7 @@ const VideoUpload = () => {
       
       // Calculate payment based on views
       const viewCount = parseInt(views) || 0;
-      const paymentAmount = calculatePayment(viewCount);
+      const paymentAmount = calculatePayment(viewCount, clipType);
       
       // Save URL submission to database
       const { data: submissionData, error: submissionError } = await supabase
