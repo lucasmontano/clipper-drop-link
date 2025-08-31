@@ -78,6 +78,7 @@ const AdminDashboard = () => {
   const [deletingSubmission, setDeletingSubmission] = useState<string | null>(null);
   const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -745,98 +746,21 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Galeria de Links */}
+          {/* Gallery Button */}
           <Card>
             <CardHeader>
               <CardTitle>Galeria de Links</CardTitle>
               <CardDescription>Pré-visualização dos links enviados e seus views</CardDescription>
             </CardHeader>
             <CardContent>
-              {linkSubmissions.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground border rounded-md">
-                  Nenhum link enviado até o momento.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {linkSubmissions.map((s) => (
-                    <div key={s.id} className="rounded-md border overflow-hidden bg-card">
-                      <div className="relative pb-[56.25%] bg-muted">
-                        {getEmbedForUrl(s.video_url!)}
-                      </div>
-                      <div className="p-3">
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <a
-                            href={s.video_url!}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline truncate max-w-[75%] flex items-center gap-1"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            {s.video_url}
-                          </a>
-                          <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                            <Eye className="w-4 h-4" />
-                            {s.views ? s.views.toLocaleString() : 0}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <button
-                            onClick={() => toggleApprovalStatus(s.id, s.approval_status || 'pending')}
-                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                              s.approval_status === 'approved'
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                          >
-                            {s.approval_status === 'approved' ? (
-                              <>
-                                <Check className="h-3 w-3" />
-                                Approved
-                              </>
-                            ) : (
-                              <>
-                                <Clock className="h-3 w-3" />
-                                Pending
-                              </>
-                            )}
-                          </button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="gap-1 h-7"
-                                disabled={deletingSubmission === s.id}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                                {deletingSubmission === s.id ? 'Deletando...' : 'Deletar'}
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja deletar esta submissão? Esta ação não pode ser desfeita.
-                                  {s.submission_type === 'file_upload' && ' O arquivo também será removido do armazenamento.'}
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteSubmission(s.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Deletar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <Button 
+                onClick={() => setIsGalleryModalOpen(true)}
+                className="w-full"
+                variant="outline"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Ver Galeria ({linkSubmissions.length} links)
+              </Button>
             </CardContent>
           </Card>
 
@@ -1234,6 +1158,102 @@ const AdminDashboard = () => {
             }
             {selectedUserEmail && submissions.filter(s => s.user_email === selectedUserEmail).length === 0 && (
               <p className="text-center text-muted-foreground">Nenhuma submissão encontrada para este usuário.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Gallery Modal */}
+      <Dialog open={isGalleryModalOpen} onOpenChange={setIsGalleryModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Galeria de Links</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {linkSubmissions.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground border rounded-md">
+                Nenhum link enviado até o momento.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {linkSubmissions.map((s) => (
+                  <div key={s.id} className="rounded-md border overflow-hidden bg-card">
+                    <div className="relative pb-[56.25%] bg-muted">
+                      {getEmbedForUrl(s.video_url!)}
+                    </div>
+                    <div className="p-3">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <a
+                          href={s.video_url!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline truncate max-w-[75%] flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          {s.video_url}
+                        </a>
+                        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                          <Eye className="w-4 h-4" />
+                          {s.views ? s.views.toLocaleString() : 0}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <button
+                          onClick={() => toggleApprovalStatus(s.id, s.approval_status || 'pending')}
+                          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                            s.approval_status === 'approved'
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {s.approval_status === 'approved' ? (
+                            <>
+                              <Check className="h-3 w-3" />
+                              Approved
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="h-3 w-3" />
+                              Pending
+                            </>
+                          )}
+                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="gap-1 h-7"
+                              disabled={deletingSubmission === s.id}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              {deletingSubmission === s.id ? 'Deletando...' : 'Deletar'}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja deletar esta submissão? Esta ação não pode ser desfeita.
+                                {s.submission_type === 'file_upload' && ' O arquivo também será removido do armazenamento.'}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteSubmission(s.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Deletar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </DialogContent>
