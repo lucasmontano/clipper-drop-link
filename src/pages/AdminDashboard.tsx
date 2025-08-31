@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Download, ExternalLink, Users, FileVideo, Link as LinkIcon, Trash2, Eye, RefreshCw, Check, X, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
+import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -74,6 +76,8 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [deletingSubmission, setDeletingSubmission] = useState<string | null>(null);
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(null);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -868,9 +872,17 @@ const AdminDashboard = () => {
                       ) : (
                         paymentSummaries.map((summary) => (
                           <TableRow key={summary.email}>
-                            <TableCell className="font-medium">
-                              {summary.email}
-                            </TableCell>
+                             <TableCell className="font-medium">
+                               <button
+                                 onClick={() => {
+                                   setSelectedUserEmail(summary.email);
+                                   setIsUserModalOpen(true);
+                                 }}
+                                 className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                               >
+                                 {summary.email}
+                               </button>
+                             </TableCell>
                             <TableCell>
                               <Badge variant="outline">
                                 {summary.submissionCount}
@@ -1147,6 +1159,85 @@ const AdminDashboard = () => {
           </Card>
         </CardContent>
       </Card>
+
+      {/* User Submissions Modal */}
+      <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Submissões de {selectedUserEmail}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedUserEmail && submissions
+              .filter(submission => submission.user_email === selectedUserEmail)
+              .map((submission) => (
+                <div key={submission.id} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{submission.clip_type}</Badge>
+                        <Badge 
+                          variant={submission.approval_status === 'approved' ? 'default' : 
+                                  submission.approval_status === 'rejected' ? 'destructive' : 'secondary'}
+                        >
+                          {submission.approval_status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {submission.submission_type === 'file_upload' ? 'Upload de arquivo' : 'URL de vídeo'}
+                      </p>
+                      {submission.original_filename && (
+                        <p className="text-sm">Arquivo: {submission.original_filename}</p>
+                      )}
+                      {submission.video_url && (
+                        <p className="text-sm">URL: {submission.video_url}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Enviado em: {format(new Date(submission.created_at), 'dd/MM/yyyy HH:mm')}
+                      </p>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant="outline">
+                          {submission.views?.toLocaleString() || 0} views
+                        </Badge>
+                        <span className="text-sm font-semibold text-green-600">
+                          {formatPayment(submission.payment_amount)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Video Preview */}
+                  {submission.submission_type === 'url' && submission.video_url && (
+                    <div className="mt-3">
+                      {getEmbedForUrl(submission.video_url)}
+                    </div>
+                  )}
+                  
+                  {submission.submission_type === 'file_upload' && submission.file_path && (
+                    <div className="mt-3">
+                      <video 
+                        controls 
+                        className="w-full max-w-md h-48 object-cover rounded border"
+                        onError={(e) => {
+                          console.error('Error loading video:', e);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      >
+                        <source src={`${supabase.storage.from('video-uploads').getPublicUrl(submission.file_path).data.publicUrl}`} />
+                        Seu navegador não suporta o elemento de vídeo.
+                      </video>
+                    </div>
+                  )}
+                </div>
+              ))
+            }
+            {selectedUserEmail && submissions.filter(s => s.user_email === selectedUserEmail).length === 0 && (
+              <p className="text-center text-muted-foreground">Nenhuma submissão encontrada para este usuário.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
