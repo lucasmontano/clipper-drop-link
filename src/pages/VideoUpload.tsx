@@ -1064,9 +1064,9 @@ const VideoUpload = () => {
               {views && !isNaN(parseInt(views)) && parseInt(views) > 0 && (
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">
-                    Pagamento calculado: {formatPayment(calculatePayment(parseInt(views)))}
+                    Pagamento calculado: {formatPayment(calculatePayment(parseInt(views), clipType))}
                   </div>
-                  {calculatePayment(parseInt(views)) > 10 && (
+                  {calculatePayment(parseInt(views), clipType) > 10 && (
                     <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
                       <p className="text-sm text-destructive font-medium">
                         ⚠️ Atenção: O limite máximo de pagamento por submissão é $10. 
