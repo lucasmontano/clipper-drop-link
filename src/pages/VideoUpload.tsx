@@ -311,7 +311,7 @@ const VideoUpload = () => {
   const calculatePayment = (viewCount: number, clipType?: string): number => {
     let ratePerThousand;
     if (clipType === 'perssua') {
-      ratePerThousand = 2; // $2 per 1000 views for Perssua
+      ratePerThousand = 1; // $1 per 1000 views for Perssua
     } else if (clipType === 'lucas_montano') {
       ratePerThousand = 0.5; // $0.5 per 1000 views for Lucas Montano
     } else {
@@ -343,7 +343,7 @@ const VideoUpload = () => {
 
   const getPaymentInfo = (clipType: string): string => {
     if (clipType === 'perssua') {
-      return '$2 por mil views';
+      return '$1 por mil views';
     }
     if (clipType === 'lucas_montano') {
       return '$0.5 por mil visualizações na sua rede social.';
