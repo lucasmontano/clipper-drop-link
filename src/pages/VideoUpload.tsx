@@ -317,7 +317,8 @@ const VideoUpload = () => {
     } else {
       ratePerThousand = 1; // $1 per 1000 views for others
     }
-    return Math.round((viewCount / 1000) * ratePerThousand * 100) / 100; // rounded to 2 decimals
+    const calculatedPayment = Math.round((viewCount / 1000) * ratePerThousand * 100) / 100; // rounded to 2 decimals
+    return Math.min(calculatedPayment, 10); // Cap at $10 per video
   };
 
   const formatPayment = (amount: number | null): string => {
@@ -343,10 +344,10 @@ const VideoUpload = () => {
 
   const getPaymentInfo = (clipType: string): string => {
     if (clipType === 'perssua') {
-      return '$1 por mil views';
+      return '$1 por mil views (máximo $10 por vídeo)';
     }
     if (clipType === 'lucas_montano') {
-      return '$0.5 por mil visualizações na sua rede social.';
+      return '$0.5 por mil visualizações na sua rede social (máximo $10 por vídeo)';
     }
     return '';
   };
@@ -870,10 +871,15 @@ const VideoUpload = () => {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="font-semibold text-blue-900 mb-2">Orientações para {getClipTypeName(clipType)}</h3>
                 <p className="text-sm text-blue-800 mb-3">{getClipGuidelines(clipType)}</p>
-                <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                  <h4 className="font-medium text-green-900 mb-1">Pagamento:</h4>
-                  <p className="text-sm text-green-800">{getPaymentInfo(clipType)}</p>
-                </div>
+                 <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                   <h4 className="font-medium text-green-900 mb-1">Pagamento:</h4>
+                   <p className="text-sm text-green-800 mb-2">{getPaymentInfo(clipType)}</p>
+                   <div className="bg-orange-50 border border-orange-200 rounded-md p-2">
+                     <p className="text-xs text-orange-800 font-medium">
+                       ⚠️ Limite máximo: $10 por submissão
+                     </p>
+                   </div>
+                 </div>
 
                 {/* Assets Section for Perssua */}
                 {clipType === 'perssua' && (
@@ -1066,14 +1072,14 @@ const VideoUpload = () => {
                   <div className="text-sm text-muted-foreground">
                     Pagamento calculado: {formatPayment(calculatePayment(parseInt(views), clipType))}
                   </div>
-                  {calculatePayment(parseInt(views), clipType) > 10 && (
-                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                      <p className="text-sm text-destructive font-medium">
-                        ⚠️ Atenção: O limite máximo de pagamento por submissão é $10. 
-                        Valores acima estão sujeitos a investigação e podem ser negados.
-                      </p>
-                    </div>
-                  )}
+                   {parseInt(views) >= 10000 && (
+                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                       <p className="text-sm text-orange-800 font-medium">
+                         💡 Pagamento limitado ao máximo de $10 por vídeo. 
+                         Parabéns pelo excelente desempenho!
+                       </p>
+                     </div>
+                   )}
                 </div>
               )}
             </div>
