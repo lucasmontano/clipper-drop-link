@@ -874,9 +874,14 @@ const VideoUpload = () => {
                  <div className="bg-green-50 border border-green-200 rounded-md p-3">
                    <h4 className="font-medium text-green-900 mb-1">Pagamento:</h4>
                    <p className="text-sm text-green-800 mb-2">{getPaymentInfo(clipType)}</p>
-                   <div className="bg-orange-50 border border-orange-200 rounded-md p-2">
+                   <div className="bg-orange-50 border border-orange-200 rounded-md p-2 mb-2">
                      <p className="text-xs text-orange-800 font-medium">
                        ⚠️ Limite máximo: $10 por submissão
+                     </p>
+                   </div>
+                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-2">
+                     <p className="text-xs text-yellow-800 font-medium">
+                       📋 Requisito: Você precisa ter uma empresa e conseguir gerar uma fatura via PayPal para sacar o dinheiro
                      </p>
                    </div>
                  </div>
