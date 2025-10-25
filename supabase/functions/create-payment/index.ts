@@ -53,8 +53,8 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         user_id: profiles.id,
         user_email: userEmail,
-        total_views: totalViews,
-        payment_amount: paymentAmount,
+        total_views: Math.round(totalViews), // Convert to integer
+        payment_amount: Math.round(paymentAmount * 100) / 100, // Round to 2 decimals
         submission_ids: submissionIds,
         status: 'pending'
       })
